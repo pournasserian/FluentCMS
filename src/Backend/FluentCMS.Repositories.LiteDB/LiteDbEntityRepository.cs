@@ -1,6 +1,7 @@
 using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
 using LiteDB;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FluentCMS.Repositories.LiteDB;
@@ -13,21 +14,33 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
 {
     private readonly LiteDatabase _database;
     private readonly ILiteCollection<TEntity> _collection;
+    private readonly ILogger<LiteDbEntityRepository<TEntity>> _logger;
 
     /// <summary>
     /// Initializes a new instance of the LiteDbEntityRepository class.
     /// </summary>
     /// <param name="options">The LiteDB configuration options.</param>
-    public LiteDbEntityRepository(IOptions<LiteDbOptions> options)
+    /// <param name="logger">The logger instance.</param>
+    public LiteDbEntityRepository(IOptions<LiteDbOptions> options, ILogger<LiteDbEntityRepository<TEntity>> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(options.Value.ConnectionString);
 
-        _database = new LiteDatabase(options.Value.ConnectionString);
-        _collection = _database.GetCollection<TEntity>(typeof(TEntity).Name);
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        // Configure collection
-        _collection.EnsureIndex(x => x.Id);
+        try
+        {
+            _database = new LiteDatabase(options.Value.ConnectionString);
+            _collection = _database.GetCollection<TEntity>(typeof(TEntity).Name);
+
+            // Configure collection
+            _collection.EnsureIndex(x => x.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error initializing LiteDB repository for {EntityType}", typeof(TEntity).Name);
+            throw;
+        }
     }
 
     /// <summary>
@@ -40,14 +53,28 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-        // Ensure entity has an ID
-        if (entity.Id == Guid.Empty)
+        try
         {
-            entity.Id = Guid.NewGuid();
-        }
+            // Ensure entity has an ID
+            if (entity.Id == Guid.Empty)
+            {
+                entity.Id = Guid.NewGuid();
+            }
 
-        // Insert the entity and return it if successful
-        return await Task.Run(() => _collection.Insert(entity) != null ? entity : default, cancellationToken);
+            // Set audit fields if entity is IAuditableEntity
+            if (entity is IAuditableEntity auditableEntity)
+            {
+                auditableEntity.CreatedDate = DateTime.UtcNow;
+            }
+
+            // Insert the entity and return it if successful
+            return await Task.Run(() => _collection.Insert(entity) != null ? entity : default, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating entity of type {EntityType}", typeof(TEntity).Name);
+            return default;
+        }
     }
 
     /// <summary>
@@ -61,20 +88,34 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
         ArgumentNullException.ThrowIfNull(entities);
 
         var entityList = entities.ToList();
-        if (entityList.Count == 0) return Array.Empty<TEntity>();
+        if (entityList.Count == 0) return [];
 
-        // Ensure all entities have IDs
-        foreach (var entity in entityList)
+        try
         {
-            if (entity.Id == Guid.Empty)
+            // Ensure all entities have IDs
+            foreach (var entity in entityList)
             {
-                entity.Id = Guid.NewGuid();
-            }
-        }
+                if (entity.Id == Guid.Empty)
+                {
+                    entity.Id = Guid.NewGuid();
+                }
 
-        // Insert all entities
-        await Task.Run(() => _collection.InsertBulk(entityList), cancellationToken);
-        return entityList;
+                // Set audit fields if entity is IAuditableEntity
+                if (entity is IAuditableEntity auditableEntity)
+                {
+                    auditableEntity.CreatedDate = DateTime.UtcNow;
+                }
+            }
+
+            // Insert all entities
+            await Task.Run(() => _collection.InsertBulk(entityList), cancellationToken);
+            return entityList;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating multiple entities of type {EntityType}", typeof(TEntity).Name);
+            return [];
+        }
     }
 
     /// <summary>
@@ -86,11 +127,25 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     public async Task<TEntity?> Update(TEntity entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
-
         if (entity.Id == Guid.Empty) throw new ArgumentException("Entity must have a valid ID to be updated.", nameof(entity));
 
-        // Update the entity and return it if successful
-        return await Task.Run(() => _collection.Update(entity) ? entity : default, cancellationToken);
+        try
+        {
+            // Set update audit fields if entity is IAuditableEntity
+            if (entity is IAuditableEntity auditableEntity)
+            {
+                auditableEntity.LastModifiedDate = DateTime.UtcNow;
+            }
+
+            // Update the entity and return it if successful
+            return await Task.Run(() => _collection.Update(entity) ? entity : default, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating entity of type {EntityType} with ID {EntityId}",
+                typeof(TEntity).Name, entity.Id);
+            return default;
+        }
     }
 
     /// <summary>
@@ -104,7 +159,7 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
         ArgumentNullException.ThrowIfNull(entities);
 
         var entityList = entities.ToList();
-        if (entityList.Count == 0) return Array.Empty<TEntity>();
+        if (entityList.Count == 0) return [];
 
         // Validate all entities have valid IDs
         if (entityList.Any(e => e.Id == Guid.Empty))
@@ -112,20 +167,35 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
             throw new ArgumentException("All entities must have valid IDs to be updated.");
         }
 
-        // Update each entity
-        var updatedEntities = new List<TEntity>();
-        await Task.Run(() =>
+        try
         {
-            foreach (var entity in entityList)
+            // Update each entity
+            var updatedEntities = new List<TEntity>();
+            await Task.Run(() =>
             {
-                if (_collection.Update(entity))
+                foreach (var entity in entityList)
                 {
-                    updatedEntities.Add(entity);
-                }
-            }
-        }, cancellationToken);
+                    // Set update audit fields if entity is IAuditableEntity
+                    if (entity is IAuditableEntity auditableEntity)
+                    {
+                        auditableEntity.LastModifiedDate = DateTime.UtcNow;
+                    }
 
-        return updatedEntities;
+                    if (_collection.Update(entity))
+                    {
+                        updatedEntities.Add(entity);
+                    }
+                }
+            }, cancellationToken);
+
+            return updatedEntities;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating multiple entities of type {EntityType}",
+                typeof(TEntity).Name);
+            return [];
+        }
     }
 
     /// <summary>
@@ -138,13 +208,22 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
 
-        // Get the entity before deleting it
-        var entity = await Task.Run(() => _collection.FindById(id), cancellationToken);
-        if (entity == null) return default;
+        try
+        {
+            // Get the entity before deleting it
+            var entity = await Task.Run(() => _collection.FindById(id), cancellationToken);
+            if (entity == null) return default;
 
-        // Delete the entity and return it if successful
-        var isDeleted = await Task.Run(() => _collection.Delete(id), cancellationToken);
-        return isDeleted ? entity : default;
+            // Delete the entity and return it if successful
+            var isDeleted = await Task.Run(() => _collection.Delete(id), cancellationToken);
+            return isDeleted ? entity : default;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting entity of type {EntityType} with ID {EntityId}",
+                typeof(TEntity).Name, id);
+            return default;
+        }
     }
 
     /// <summary>
@@ -160,25 +239,34 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
         var idsList = ids.ToList();
         if (idsList.Count == 0) return [];
 
-        // Get all entities before deleting them
-        var entities = await Task.Run(() => _collection.Find(x => idsList.Contains(x.Id)).ToList(), cancellationToken);
-        if (entities.Count == 0) return [];
-
-        // Delete each entity
-        var deletedEntities = new List<TEntity>();
-        foreach (var id in idsList)
+        try
         {
-            if (_collection.Delete(id))
+            // Get all entities before deleting them
+            var entities = await Task.Run(() => _collection.Find(x => idsList.Contains(x.Id)).ToList(), cancellationToken);
+            if (entities.Count == 0) return [];
+
+            // Delete each entity
+            var deletedEntities = new List<TEntity>();
+            foreach (var id in idsList)
             {
-                var entity = entities.FirstOrDefault(e => e.Id == id);
-                if (entity != null)
+                if (_collection.Delete(id))
                 {
-                    deletedEntities.Add(entity);
+                    var entity = entities.FirstOrDefault(e => e.Id == id);
+                    if (entity != null)
+                    {
+                        deletedEntities.Add(entity);
+                    }
                 }
             }
-        }
 
-        return deletedEntities;
+            return deletedEntities;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting multiple entities of type {EntityType}",
+                typeof(TEntity).Name);
+            return [];
+        }
     }
 
     /// <summary>
@@ -188,7 +276,16 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     /// <returns>All entities.</returns>
     public async Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default)
     {
-        return await Task.Run(() => _collection.FindAll(), cancellationToken);
+        try
+        {
+            return await Task.Run(() => _collection.FindAll(), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all entities of type {EntityType}",
+                typeof(TEntity).Name);
+            return [];
+        }
     }
 
     /// <summary>
@@ -201,7 +298,16 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
 
-        return await Task.Run(() => _collection.FindById(id), cancellationToken);
+        try
+        {
+            return await Task.Run(() => _collection.FindById(id), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting entity of type {EntityType} with ID {EntityId}",
+                typeof(TEntity).Name, id);
+            return default;
+        }
     }
 
     /// <summary>
@@ -217,7 +323,16 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
         var idsList = ids.ToList();
         if (idsList.Count == 0) return [];
 
-        return await Task.Run(() => _collection.Find(x => idsList.Contains(x.Id)));
+        try
+        {
+            return await Task.Run(() => _collection.Find(x => idsList.Contains(x.Id)));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting multiple entities of type {EntityType}",
+                typeof(TEntity).Name);
+            return [];
+        }
     }
 
     /// <summary>
