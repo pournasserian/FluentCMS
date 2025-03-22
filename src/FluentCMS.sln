@@ -11,6 +11,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Repositories", "Repositorie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.Abstractions", "Backend\FluentCMS.Repositories.Abstractions\FluentCMS.Repositories.Abstractions.csproj", "{3CB9807D-32D1-4108-8CB0-D8969BE653F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.LiteDB", "Backend\FluentCMS.Repositories.LiteDB\FluentCMS.Repositories.LiteDB.csproj", "{B620F435-0AB4-AD95-2B06-A65868D8EC2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.MongoDB", "Backend\FluentCMS.Repositories.MongoDB\FluentCMS.Repositories.MongoDB.csproj", "{84DB1D48-10F4-8EBE-8175-41F88D821D58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.SQLite", "Backend\FluentCMS.Repositories.SQLite\FluentCMS.Repositories.SQLite.csproj", "{FB7E8962-F606-080B-4A15-903A4064934D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.SqlServer", "Backend\FluentCMS.Repositories.SqlServer\FluentCMS.Repositories.SqlServer.csproj", "{73CD5C37-0772-BE9B-44FA-D2C390DD51B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.EntityFramework", "Backend\FluentCMS.Repositories.EntityFramework\FluentCMS.Repositories.EntityFramework.csproj", "{EEAEA2E6-1363-40CC-BD0B-DBD35AC78CD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +35,26 @@ Global
 		{3CB9807D-32D1-4108-8CB0-D8969BE653F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CB9807D-32D1-4108-8CB0-D8969BE653F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CB9807D-32D1-4108-8CB0-D8969BE653F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B620F435-0AB4-AD95-2B06-A65868D8EC2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B620F435-0AB4-AD95-2B06-A65868D8EC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B620F435-0AB4-AD95-2B06-A65868D8EC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B620F435-0AB4-AD95-2B06-A65868D8EC2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84DB1D48-10F4-8EBE-8175-41F88D821D58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84DB1D48-10F4-8EBE-8175-41F88D821D58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84DB1D48-10F4-8EBE-8175-41F88D821D58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84DB1D48-10F4-8EBE-8175-41F88D821D58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB7E8962-F606-080B-4A15-903A4064934D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB7E8962-F606-080B-4A15-903A4064934D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB7E8962-F606-080B-4A15-903A4064934D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB7E8962-F606-080B-4A15-903A4064934D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73CD5C37-0772-BE9B-44FA-D2C390DD51B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73CD5C37-0772-BE9B-44FA-D2C390DD51B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73CD5C37-0772-BE9B-44FA-D2C390DD51B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73CD5C37-0772-BE9B-44FA-D2C390DD51B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEAEA2E6-1363-40CC-BD0B-DBD35AC78CD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEAEA2E6-1363-40CC-BD0B-DBD35AC78CD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEAEA2E6-1363-40CC-BD0B-DBD35AC78CD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEAEA2E6-1363-40CC-BD0B-DBD35AC78CD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -33,6 +63,11 @@ Global
 		{AC14DD00-BF55-F41D-D8AF-991209B6E2EE} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{EC10F87D-0D8C-4F61-9C45-5F8E0CDFC459} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{3CB9807D-32D1-4108-8CB0-D8969BE653F0} = {EC10F87D-0D8C-4F61-9C45-5F8E0CDFC459}
+		{B620F435-0AB4-AD95-2B06-A65868D8EC2D} = {EC10F87D-0D8C-4F61-9C45-5F8E0CDFC459}
+		{84DB1D48-10F4-8EBE-8175-41F88D821D58} = {EC10F87D-0D8C-4F61-9C45-5F8E0CDFC459}
+		{FB7E8962-F606-080B-4A15-903A4064934D} = {EC10F87D-0D8C-4F61-9C45-5F8E0CDFC459}
+		{73CD5C37-0772-BE9B-44FA-D2C390DD51B1} = {EC10F87D-0D8C-4F61-9C45-5F8E0CDFC459}
+		{EEAEA2E6-1363-40CC-BD0B-DBD35AC78CD3} = {EC10F87D-0D8C-4F61-9C45-5F8E0CDFC459}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4A11F59B-1E45-43DF-834B-2C8198FAE9D6}

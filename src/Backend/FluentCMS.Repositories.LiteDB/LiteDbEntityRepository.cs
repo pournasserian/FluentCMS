@@ -1,581 +1,313 @@
 using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
-using FluentCMS.Repositories.Core;
-using FluentCMS.Repositories.LiteDB.Infrastructure;
 using LiteDB;
-using System.Linq.Expressions;
+using Microsoft.Extensions.Options;
 
 namespace FluentCMS.Repositories.LiteDB;
 
 /// <summary>
-/// LiteDB implementation of the entity repository.
+/// Repository implementation for LiteDB database provider.
 /// </summary>
-/// <typeparam name="TEntity">The entity type that implements IBaseEntity</typeparam>
-public class LiteDbEntityRepository<TEntity> : BaseEntityRepositoryBase<TEntity>
-    where TEntity : class, IBaseEntity
+/// <typeparam name="TEntity">The entity type, which must implement IBaseEntity.</typeparam>
+public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> where TEntity : IBaseEntity
 {
-    private readonly LiteDbContext _context;
+    private readonly LiteDatabase _database;
     private readonly ILiteCollection<TEntity> _collection;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LiteDbEntityRepository{TEntity}"/> class.
+    /// Initializes a new instance of the LiteDbEntityRepository class.
     /// </summary>
-    /// <param name="context">The LiteDB context.</param>
-    public LiteDbEntityRepository(LiteDbContext context)
+    /// <param name="options">The LiteDB configuration options.</param>
+    public LiteDbEntityRepository(IOptions<LiteDbOptions> options)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _collection = _context.GetCollection<TEntity>();
+        ArgumentNullException.ThrowIfNull(options);
+
+        _database = new LiteDatabase(options.Value.ConnectionString);
+        _collection = _database.GetCollection<TEntity>(typeof(TEntity).Name);
+        
+        // Configure collection
+        _collection.EnsureIndex(x => x.Id);
     }
 
-    #region Basic CRUD Operations
-
-    /// <inheritdoc />
-    protected override async Task<TEntity?> CreateInternalAsync(TEntity entity, CancellationToken cancellationToken)
+    /// <summary>
+    /// Creates a new entity in the database.
+    /// </summary>
+    /// <param name="entity">The entity to create.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The created entity, or null if creation failed.</returns>
+    public async Task<TEntity?> Create(TEntity entity, CancellationToken cancellationToken = default)
     {
-        // LiteDB doesn't support async operations natively, but we use the Task.Run pattern
-        // to avoid blocking the calling thread
-        return await Task.Run(() =>
+        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        
+        try
         {
-            _collection.Insert(entity);
-            return entity;
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> CreateManyInternalAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var entitiesList = entities.ToList();
-            if (!entitiesList.Any())
-                return entitiesList;
-
-            _collection.InsertBulk(entitiesList);
-            return entitiesList;
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<TEntity?> UpdateInternalAsync(TEntity entity, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var success = _collection.Update(entity);
-            return success ? entity : null;
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> UpdateManyInternalAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var entitiesList = entities.ToList();
-            if (!entitiesList.Any())
-                return entitiesList;
-
-            // Begin transaction for bulk operations
-            _context.BeginTransaction();
+            await _semaphore.WaitAsync(cancellationToken);
             
-            try
+            // Ensure entity has an ID
+            if (entity.Id == Guid.Empty)
             {
-                foreach (var entity in entitiesList)
-                {
-                    _collection.Update(entity);
-                }
-                
-                _context.CommitTransaction();
-                return entitiesList;
-            }
-            catch
-            {
-                _context.RollbackTransaction();
-                throw;
-            }
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<TEntity?> DeleteInternalAsync(Guid id, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var entity = _collection.FindById(id);
-            if (entity == null)
-                return null;
-
-            var success = _collection.Delete(id);
-            return success ? entity : null;
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> DeleteManyInternalAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var idsList = ids.ToList();
-            if (!idsList.Any())
-                return Enumerable.Empty<TEntity>();
-
-            // Get the entities first to return them after deletion
-            var entities = _collection.Find(Query.In("_id", idsList.Select(id => new BsonValue(id)).ToArray())).ToList();
-            
-            if (!entities.Any())
-                return Enumerable.Empty<TEntity>();
-
-            // Begin transaction for bulk operations
-            _context.BeginTransaction();
-            
-            try
-            {
-                foreach (var id in idsList)
-                {
-                    _collection.Delete(id);
-                }
-                
-                _context.CommitTransaction();
-                return entities;
-            }
-            catch
-            {
-                _context.RollbackTransaction();
-                throw;
-            }
-        }, cancellationToken);
-    }
-
-    #endregion
-
-    #region Query Operations
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> GetAllInternalAsync(CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.FindAll().ToList(), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<TEntity?> GetByIdInternalAsync(Guid id, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.FindById(id), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> GetByIdsInternalAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var idsList = ids.ToList();
-            if (!idsList.Any())
-                return Enumerable.Empty<TEntity>();
-
-            return _collection.Find(Query.In("_id", idsList.Select(id => new BsonValue(id)).ToArray())).ToList();
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> FindInternalAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.Find(predicate).ToList(), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<TEntity?> FindOneInternalAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.FindOne(predicate), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<bool> ExistsInternalAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.Exists(predicate), cancellationToken);
-    }
-
-    #endregion
-
-    #region Pagination
-
-    /// <inheritdoc />
-    protected override async Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedInternalAsync(int pageNumber, int pageSize, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var totalCount = _collection.Count();
-            var items = _collection.Query()
-                .Skip((pageNumber - 1) * pageSize)
-                .Limit(pageSize)
-                .ToList();
-                
-            return (items, totalCount);
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<(IEnumerable<TEntity> Items, int TotalCount)> FindPagedInternalAsync(Expression<Func<TEntity, bool>> predicate, int pageNumber, int pageSize, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var query = _collection.Query().Where(predicate);
-            var totalCount = query.Count();
-            var items = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Limit(pageSize)
-                .ToList();
-                
-            return (items, totalCount);
-        }, cancellationToken);
-    }
-
-    #endregion
-
-    #region Sorting
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> GetAllSortedInternalAsync<TKey>(Expression<Func<TEntity, TKey>> keySelector, bool ascending, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var query = _collection.Query();
-            
-            if (ascending)
-                query = query.OrderBy(keySelector);
-            else
-                query = query.OrderByDescending(keySelector);
-                
-            return query.ToList();
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedSortedInternalAsync<TKey>(int pageNumber, int pageSize, Expression<Func<TEntity, TKey>> keySelector, bool ascending, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var query = _collection.Query();
-            var totalCount = query.Count();
-            
-            if (ascending)
-                query = query.OrderBy(keySelector);
-            else
-                query = query.OrderByDescending(keySelector);
-                
-            var items = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Limit(pageSize)
-                .ToList();
-                
-            return (items, totalCount);
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> FindSortedInternalAsync<TKey>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TKey>> keySelector, bool ascending, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var query = _collection.Query().Where(predicate);
-            
-            if (ascending)
-                query = query.OrderBy(keySelector);
-            else
-                query = query.OrderByDescending(keySelector);
-                
-            return query.ToList();
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<(IEnumerable<TEntity> Items, int TotalCount)> FindPagedSortedInternalAsync<TKey>(Expression<Func<TEntity, bool>> predicate, int pageNumber, int pageSize, Expression<Func<TEntity, TKey>> keySelector, bool ascending, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            var query = _collection.Query().Where(predicate);
-            var totalCount = query.Count();
-            
-            if (ascending)
-                query = query.OrderBy(keySelector);
-            else
-                query = query.OrderByDescending(keySelector);
-                
-            var items = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Limit(pageSize)
-                .ToList();
-                
-            return (items, totalCount);
-        }, cancellationToken);
-    }
-
-    #endregion
-
-    #region Soft Delete Operations
-
-    /// <inheritdoc />
-    protected override async Task<TEntity?> SoftDeleteInternalAsync(Guid id, string? deletedBy, CancellationToken cancellationToken)
-    {
-        // Check if entity supports soft delete
-        if (!typeof(ISoftDeleteBaseEntity).IsAssignableFrom(typeof(TEntity)))
-            return null;
-            
-        return await Task.Run(() =>
-        {
-            var entity = _context.GetCollection<TEntity>(true).FindById(id);
-            if (entity == null)
-                return null;
-                
-            // Use runtime type casting to set soft delete properties
-            var softDeleteEntity = entity as ISoftDeleteBaseEntity;
-            if (softDeleteEntity != null)
-            {
-                softDeleteEntity.IsDeleted = true;
-                softDeleteEntity.DeletedDate = DateTime.UtcNow;
-                softDeleteEntity.DeletedBy = deletedBy;
-                
-                // Update the entity
-                var success = _context.GetCollection<TEntity>(true).Update(entity);
-                return success ? entity : null;
+                entity.Id = Guid.NewGuid();
             }
             
-            return null;
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> SoftDeleteManyInternalAsync(IEnumerable<Guid> ids, string? deletedBy, CancellationToken cancellationToken)
-    {
-        // Check if entity supports soft delete
-        if (!typeof(ISoftDeleteBaseEntity).IsAssignableFrom(typeof(TEntity)))
-            return Enumerable.Empty<TEntity>();
-            
-        return await Task.Run(() =>
+            // Insert the entity and return it if successful
+            return _collection.Insert(entity) != null 
+                ? entity 
+                : default;
+        }
+        finally
         {
-            var idsList = ids.ToList();
-            if (!idsList.Any())
-                return Enumerable.Empty<TEntity>();
-                
-            var entities = _context.GetCollection<TEntity>(true)
-                .Find(Query.In("_id", idsList.Select(id => new BsonValue(id)).ToArray()))
-                .ToList();
-                
-            if (!entities.Any())
-                return Enumerable.Empty<TEntity>();
-                
-            // Begin transaction for bulk operations
-            _context.BeginTransaction();
-            
-            try
-            {
-                foreach (var entity in entities)
-                {
-                    // Use runtime type casting to set soft delete properties
-                    var softDeleteEntity = entity as ISoftDeleteBaseEntity;
-                    if (softDeleteEntity != null)
-                    {
-                        softDeleteEntity.IsDeleted = true;
-                        softDeleteEntity.DeletedDate = DateTime.UtcNow;
-                        softDeleteEntity.DeletedBy = deletedBy;
-                        
-                        _context.GetCollection<TEntity>(true).Update(entity);
-                    }
-                }
-                
-                _context.CommitTransaction();
-                return entities;
-            }
-            catch
-            {
-                _context.RollbackTransaction();
-                throw;
-            }
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<TEntity?> RestoreInternalAsync(Guid id, CancellationToken cancellationToken)
-    {
-        // Check if entity supports soft delete
-        if (!typeof(ISoftDeleteBaseEntity).IsAssignableFrom(typeof(TEntity)))
-            return null;
-            
-        return await Task.Run(() =>
-        {
-            var entity = _context.GetCollection<TEntity>(true).FindById(id);
-            if (entity == null)
-                return null;
-                
-            // Use runtime type casting to reset soft delete properties
-            var softDeleteEntity = entity as ISoftDeleteBaseEntity;
-            if (softDeleteEntity != null)
-            {
-                softDeleteEntity.IsDeleted = false;
-                softDeleteEntity.DeletedDate = null;
-                softDeleteEntity.DeletedBy = null;
-                
-                // Update the entity
-                var success = _context.GetCollection<TEntity>(true).Update(entity);
-                return success ? entity : null;
-            }
-            
-            return null;
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TEntity>> GetAllIncludeDeletedInternalAsync(CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _context.GetCollection<TEntity>(true).FindAll().ToList(), cancellationToken);
-    }
-
-    #endregion
-
-    #region Aggregation Operations
-
-    /// <inheritdoc />
-    protected override async Task<int> CountInternalAsync(CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.Count(), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<int> CountInternalAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.Count(predicate), cancellationToken);
-    }
-
-    #endregion
-
-    #region Bulk Update Operations
-
-    /// <inheritdoc />
-    protected override async Task<int> UpdateManyWithFieldsInternalAsync(Expression<Func<TEntity, bool>> predicate, Dictionary<string, object> fieldValues, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() =>
-        {
-            if (!fieldValues.Any())
-                return 0;
-                
-            var entities = _collection.Find(predicate).ToList();
-            if (!entities.Any())
-                return 0;
-                
-            // Begin transaction for bulk operations
-            _context.BeginTransaction();
-            
-            try
-            {
-                var updatedCount = 0;
-                
-                foreach (var entity in entities)
-                {
-                    var updated = false;
-                    
-                    // Use reflection to update field values
-                    foreach (var kvp in fieldValues)
-                    {
-                        var property = typeof(TEntity).GetProperty(kvp.Key);
-                        if (property != null && property.CanWrite)
-                        {
-                            property.SetValue(entity, kvp.Value);
-                            updated = true;
-                        }
-                    }
-                    
-                    if (updated)
-                    {
-                        _collection.Update(entity);
-                        updatedCount++;
-                    }
-                }
-                
-                _context.CommitTransaction();
-                return updatedCount;
-            }
-            catch
-            {
-                _context.RollbackTransaction();
-                throw;
-            }
-        }, cancellationToken);
-    }
-
-    #endregion
-
-    #region Projection Support
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TResult>> SelectInternalAsync<TResult>(Expression<Func<TEntity, TResult>> selector, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.Query().Select(selector).ToList(), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override async Task<IEnumerable<TResult>> SelectWhereInternalAsync<TResult>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TResult>> selector, CancellationToken cancellationToken)
-    {
-        return await Task.Run(() => _collection.Query().Where(predicate).Select(selector).ToList(), cancellationToken);
-    }
-
-    #endregion
-
-    #region Async Enumeration
-
-    /// <inheritdoc />
-    protected override IAsyncEnumerable<TEntity> GetAllAsStreamInternalAsync(CancellationToken cancellationToken)
-    {
-        return ConvertToAsyncEnumerable(_collection.FindAll(), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    protected override IAsyncEnumerable<TEntity> FindAsStreamInternalAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
-    {
-        return ConvertToAsyncEnumerable(_collection.Find(predicate), cancellationToken);
-    }
-
-    #endregion
-
-    #region Transaction Support
-
-    /// <inheritdoc />
-    protected override async Task<bool> ExecuteInTransactionInternalAsync(Func<IEnhancedBaseEntityRepository<TEntity>, Task<bool>> operation, CancellationToken cancellationToken)
-    {
-        return await Task.Run(async () =>
-        {
-            _context.BeginTransaction();
-            
-            try
-            {
-                var result = await operation(this);
-                
-                if (result)
-                    _context.CommitTransaction();
-                else
-                    _context.RollbackTransaction();
-                    
-                return result;
-            }
-            catch
-            {
-                _context.RollbackTransaction();
-                throw;
-            }
-        }, cancellationToken);
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private async IAsyncEnumerable<T> ConvertToAsyncEnumerable<T>(IEnumerable<T> source, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        foreach (var item in source)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            yield return item;
-            
-            // Simulate async behavior to avoid blocking the thread
-            await Task.Yield();
+            _semaphore.Release();
         }
     }
 
-    #endregion
+    /// <summary>
+    /// Creates multiple entities in the database.
+    /// </summary>
+    /// <param name="entities">The entities to create.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The created entities.</returns>
+    public async Task<IEnumerable<TEntity>> CreateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0) return [];
+
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            // Ensure all entities have IDs
+            foreach (var entity in entityList)
+            {
+                if (entity.Id == Guid.Empty)
+                {
+                    entity.Id = Guid.NewGuid();
+                }
+            }
+            
+            // Insert all entities
+            _collection.InsertBulk(entityList);
+            return entityList;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Updates an existing entity in the database.
+    /// </summary>
+    /// <param name="entity">The entity to update.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The updated entity, or null if the update failed.</returns>
+    public async Task<TEntity?> Update(TEntity entity, CancellationToken cancellationToken = default)
+    {
+        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        if (entity.Id == Guid.Empty) throw new ArgumentException("Entity must have a valid ID to be updated.", nameof(entity));
+        
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            // Update the entity and return it if successful
+            return _collection.Update(entity) 
+                ? entity 
+                : default;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Updates multiple entities in the database.
+    /// </summary>
+    /// <param name="entities">The entities to update.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The updated entities.</returns>
+    public async Task<IEnumerable<TEntity>> UpdateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0) return [];
+
+        // Validate all entities have valid IDs
+        if (entityList.Any(e => e.Id == Guid.Empty))
+        {
+            throw new ArgumentException("All entities must have valid IDs to be updated.");
+        }
+
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            // Update each entity
+            var updatedEntities = new List<TEntity>();
+            foreach (var entity in entityList)
+            {
+                if (_collection.Update(entity))
+                {
+                    updatedEntities.Add(entity);
+                }
+            }
+            
+            return updatedEntities;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Deletes an entity from the database by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity to delete.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The deleted entity, or null if no entity was found.</returns>
+    public async Task<TEntity?> Delete(Guid id, CancellationToken cancellationToken = default)
+    {
+        if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
+        
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            // Get the entity before deleting it
+            var entity = _collection.FindById(id);
+            if (entity == null) return default;
+            
+            // Delete the entity and return it if successful
+            return _collection.Delete(id) 
+                ? entity 
+                : default;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Deletes multiple entities from the database by their IDs.
+    /// </summary>
+    /// <param name="ids">The IDs of the entities to delete.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The deleted entities.</returns>
+    public async Task<IEnumerable<TEntity>> DeleteMany(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids == null) throw new ArgumentNullException(nameof(ids));
+        
+        var idsList = ids.ToList();
+        if (!idsList.Any()) return Enumerable.Empty<TEntity>();
+
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            // Get all entities before deleting them
+            var entities = _collection.Find(x => idsList.Contains(x.Id)).ToList();
+            if (!entities.Any()) return [];
+            
+            // Delete each entity
+            var deletedEntities = new List<TEntity>();
+            foreach (var id in idsList)
+            {
+                if (_collection.Delete(id))
+                {
+                    var entity = entities.FirstOrDefault(e => e.Id == id);
+                    if (entity != null)
+                    {
+                        deletedEntities.Add(entity);
+                    }
+                }
+            }
+            
+            return deletedEntities;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Gets all entities from the database.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>All entities.</returns>
+    public async Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            return [.. _collection.FindAll()];
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Gets an entity by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity to get.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The entity, or null if no entity was found.</returns>
+    public async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken = default)
+    {
+        if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
+        
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            return _collection.FindById(id);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Gets multiple entities by their IDs.
+    /// </summary>
+    /// <param name="ids">The IDs of the entities to get.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The entities found.</returns>
+    public async Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids == null) throw new ArgumentNullException(nameof(ids));
+        
+        var idsList = ids.ToList();
+        if (idsList.Count == 0) return [];
+
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            
+            return [.. _collection.Find(x => idsList.Contains(x.Id))];
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+    
+    /// <summary>
+    /// Finalizes the instance and releases managed resources.
+    /// </summary>
+    ~LiteDbEntityRepository()
+    {
+        _database?.Dispose();
+        _semaphore?.Dispose();
+    }
 }
