@@ -13,7 +13,6 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
 {
     private readonly LiteDatabase _database;
     private readonly ILiteCollection<TEntity> _collection;
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     /// <summary>
     /// Initializes a new instance of the LiteDbEntityRepository class.
@@ -22,10 +21,11 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     public LiteDbEntityRepository(IOptions<LiteDbOptions> options)
     {
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(options.Value.ConnectionString);
 
         _database = new LiteDatabase(options.Value.ConnectionString);
         _collection = _database.GetCollection<TEntity>(typeof(TEntity).Name);
-        
+
         // Configure collection
         _collection.EnsureIndex(x => x.Id);
     }
@@ -39,26 +39,15 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     public async Task<TEntity?> Create(TEntity entity, CancellationToken cancellationToken = default)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
-        
-        try
+
+        // Ensure entity has an ID
+        if (entity.Id == Guid.Empty)
         {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            // Ensure entity has an ID
-            if (entity.Id == Guid.Empty)
-            {
-                entity.Id = Guid.NewGuid();
-            }
-            
-            // Insert the entity and return it if successful
-            return _collection.Insert(entity) != null 
-                ? entity 
-                : default;
+            entity.Id = Guid.NewGuid();
         }
-        finally
-        {
-            _semaphore.Release();
-        }
+
+        // Insert the entity and return it if successful
+        return await Task.Run(() => _collection.Insert(entity) != null ? entity : default, cancellationToken);
     }
 
     /// <summary>
@@ -72,29 +61,20 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
         ArgumentNullException.ThrowIfNull(entities);
 
         var entityList = entities.ToList();
-        if (entityList.Count == 0) return [];
+        if (entityList.Count == 0) return Array.Empty<TEntity>();
 
-        try
+        // Ensure all entities have IDs
+        foreach (var entity in entityList)
         {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            // Ensure all entities have IDs
-            foreach (var entity in entityList)
+            if (entity.Id == Guid.Empty)
             {
-                if (entity.Id == Guid.Empty)
-                {
-                    entity.Id = Guid.NewGuid();
-                }
+                entity.Id = Guid.NewGuid();
             }
-            
-            // Insert all entities
-            _collection.InsertBulk(entityList);
-            return entityList;
         }
-        finally
-        {
-            _semaphore.Release();
-        }
+
+        // Insert all entities
+        await Task.Run(() => _collection.InsertBulk(entityList), cancellationToken);
+        return entityList;
     }
 
     /// <summary>
@@ -105,22 +85,12 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     /// <returns>The updated entity, or null if the update failed.</returns>
     public async Task<TEntity?> Update(TEntity entity, CancellationToken cancellationToken = default)
     {
-        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        ArgumentNullException.ThrowIfNull(entity);
+
         if (entity.Id == Guid.Empty) throw new ArgumentException("Entity must have a valid ID to be updated.", nameof(entity));
-        
-        try
-        {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            // Update the entity and return it if successful
-            return _collection.Update(entity) 
-                ? entity 
-                : default;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+
+        // Update the entity and return it if successful
+        return await Task.Run(() => _collection.Update(entity) ? entity : default, cancellationToken);
     }
 
     /// <summary>
@@ -134,7 +104,7 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
         ArgumentNullException.ThrowIfNull(entities);
 
         var entityList = entities.ToList();
-        if (entityList.Count == 0) return [];
+        if (entityList.Count == 0) return Array.Empty<TEntity>();
 
         // Validate all entities have valid IDs
         if (entityList.Any(e => e.Id == Guid.Empty))
@@ -142,12 +112,10 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
             throw new ArgumentException("All entities must have valid IDs to be updated.");
         }
 
-        try
+        // Update each entity
+        var updatedEntities = new List<TEntity>();
+        await Task.Run(() =>
         {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            // Update each entity
-            var updatedEntities = new List<TEntity>();
             foreach (var entity in entityList)
             {
                 if (_collection.Update(entity))
@@ -155,13 +123,9 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
                     updatedEntities.Add(entity);
                 }
             }
-            
-            return updatedEntities;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        }, cancellationToken);
+
+        return updatedEntities;
     }
 
     /// <summary>
@@ -173,24 +137,14 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     public async Task<TEntity?> Delete(Guid id, CancellationToken cancellationToken = default)
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
-        
-        try
-        {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            // Get the entity before deleting it
-            var entity = _collection.FindById(id);
-            if (entity == null) return default;
-            
-            // Delete the entity and return it if successful
-            return _collection.Delete(id) 
-                ? entity 
-                : default;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+
+        // Get the entity before deleting it
+        var entity = await Task.Run(() => _collection.FindById(id), cancellationToken);
+        if (entity == null) return default;
+
+        // Delete the entity and return it if successful
+        var isDeleted = await Task.Run(() => _collection.Delete(id), cancellationToken);
+        return isDeleted ? entity : default;
     }
 
     /// <summary>
@@ -201,39 +155,30 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     /// <returns>The deleted entities.</returns>
     public async Task<IEnumerable<TEntity>> DeleteMany(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
-        if (ids == null) throw new ArgumentNullException(nameof(ids));
-        
-        var idsList = ids.ToList();
-        if (!idsList.Any()) return Enumerable.Empty<TEntity>();
+        ArgumentNullException.ThrowIfNull(ids);
 
-        try
+        var idsList = ids.ToList();
+        if (idsList.Count == 0) return [];
+
+        // Get all entities before deleting them
+        var entities = await Task.Run(() => _collection.Find(x => idsList.Contains(x.Id)).ToList(), cancellationToken);
+        if (entities.Count == 0) return [];
+
+        // Delete each entity
+        var deletedEntities = new List<TEntity>();
+        foreach (var id in idsList)
         {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            // Get all entities before deleting them
-            var entities = _collection.Find(x => idsList.Contains(x.Id)).ToList();
-            if (!entities.Any()) return [];
-            
-            // Delete each entity
-            var deletedEntities = new List<TEntity>();
-            foreach (var id in idsList)
+            if (_collection.Delete(id))
             {
-                if (_collection.Delete(id))
+                var entity = entities.FirstOrDefault(e => e.Id == id);
+                if (entity != null)
                 {
-                    var entity = entities.FirstOrDefault(e => e.Id == id);
-                    if (entity != null)
-                    {
-                        deletedEntities.Add(entity);
-                    }
+                    deletedEntities.Add(entity);
                 }
             }
-            
-            return deletedEntities;
         }
-        finally
-        {
-            _semaphore.Release();
-        }
+
+        return deletedEntities;
     }
 
     /// <summary>
@@ -243,16 +188,7 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     /// <returns>All entities.</returns>
     public async Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            return [.. _collection.FindAll()];
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        return await Task.Run(() => _collection.FindAll(), cancellationToken);
     }
 
     /// <summary>
@@ -264,17 +200,8 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     public async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
-        
-        try
-        {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            return _collection.FindById(id);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+
+        return await Task.Run(() => _collection.FindById(id), cancellationToken);
     }
 
     /// <summary>
@@ -285,29 +212,19 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
     /// <returns>The entities found.</returns>
     public async Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
-        if (ids == null) throw new ArgumentNullException(nameof(ids));
-        
+        ArgumentNullException.ThrowIfNull(ids);
+
         var idsList = ids.ToList();
         if (idsList.Count == 0) return [];
 
-        try
-        {
-            await _semaphore.WaitAsync(cancellationToken);
-            
-            return [.. _collection.Find(x => idsList.Contains(x.Id))];
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        return await Task.Run(() => _collection.Find(x => idsList.Contains(x.Id)));
     }
-    
+
     /// <summary>
     /// Finalizes the instance and releases managed resources.
     /// </summary>
     ~LiteDbEntityRepository()
     {
         _database?.Dispose();
-        _semaphore?.Dispose();
     }
 }
