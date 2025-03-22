@@ -1,0 +1,56 @@
+# FluentCMS Project Intelligence
+
+This file captures important patterns, preferences, and project intelligence specific to the FluentCMS project.
+
+## Repository Pattern Implementation
+
+- Repository interfaces follow the generic pattern `IBaseEntityRepository<TEntity>` where TEntity must implement `IBaseEntity`
+- All repository operations are asynchronous and return `Task<T>` or `Task<IEnumerable<T>>`
+- Operations that might fail return nullable types (e.g., `Task<TEntity?>`)
+- All repositories include proper error handling and logging
+- ID generation happens at the repository level, not the database level
+- Repositories should not expose database-specific objects or operations to callers
+
+## Database Provider Conventions
+
+- Each database provider has its own project for implementation isolation
+- Connection strings and other configuration are provided through Options pattern
+- MongoDB and LiteDB implementations are the most mature
+- Collection/table naming can be customized through provider options
+- Extension methods for registration follow the pattern `AddXyzRepositories()`
+
+## Entity Conventions
+
+- All entities must implement `IBaseEntity` with an `Id` property of type `Guid`
+- Entities that need audit tracking should inherit from `AuditableEntity` or implement `IAuditableEntity`
+- Entity classes should be kept minimal without business logic
+- New entity types should follow established patterns in existing entities
+
+## Asynchronous Programming
+
+- DO NOT use `async` suffix for method names (e.g., use `GetById` instead of `GetByIdAsync`)
+- DO use `ConfigureAwait(false)` where appropriate to prevent deadlocks
+- DO handle cancellation tokens properly
+- Always return `Task` or `Task<T>` for asynchronous methods
+- Avoid using `.Result` or `.Wait()` on tasks
+
+## Error Handling
+
+- Repository methods handle exceptions internally and return null or empty collections on failure
+- All exceptions are logged with appropriate context information
+- Services (to be implemented) will handle business logic validation
+- Provide meaningful error messages that help diagnose issues
+
+## Dependency Injection
+
+- Use constructor injection for required dependencies
+- Register repositories using extension methods for cleaner startup configuration
+- Follow scoped lifetime for repositories (AddScoped)
+- Use IOptions<T> pattern for configuration injection
+
+## Special Considerations
+
+- LiteDB repository needs proper disposal of database connections
+- MongoDB requires configuration of serialization conventions
+- Ensure consistent behavior across all database providers
+- Handle ID generation consistently across all repository implementations
