@@ -2,6 +2,12 @@
 
 This document outlines the documentation standards and best practices for the FluentCMS project.
 
+## Documentation Requirements
+
+-   Update relevant documentation in /docs when modifying features
+-   Keep README.md in sync with new capabilities
+-   Maintain changelog entries in CHANGELOG.md
+
 ## 1. General Documentation Principles
 
 ### 1.1 Purpose
