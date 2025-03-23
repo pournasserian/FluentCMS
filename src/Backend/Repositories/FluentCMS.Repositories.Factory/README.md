@@ -10,6 +10,8 @@ just by modifying configuration in appsettings.json.
 - Support for multiple database providers:
   - MongoDB
   - LiteDB
+  - PostgreSQL
+  - MySQL
   - Entity Framework Core
   - SQLite
   - SQL Server
@@ -53,6 +55,14 @@ Configure your database provider in appsettings.json:
     "SQLite": {
       "Filename": "fluentcms.db",
       "InMemory": false
+    },
+    
+    "PostgreSQL": {
+      "ConnectionString": "Host=localhost;Database=FluentCMS;Username=postgres;Password=yourpassword;"
+    },
+    
+    "MySQL": {
+      "ConnectionString": "Server=localhost;Database=FluentCMS;User=root;Password=password;"
     },
     
     "SqlServer": {
@@ -176,6 +186,43 @@ public class MyService
   "Filename": "fluentcms.db",
   "InMemory": false,
   "Password": "optional-password"
+}
+```
+
+### PostgreSQL
+
+```json
+"PostgreSQL": {
+  "ConnectionString": "Host=localhost;Database=FluentCMS;Username=postgres;Password=yourpassword;",
+  "ServerVersion": "15.0",
+  "UseConnectionPooling": true,
+  "MaxPoolSize": 100,
+  "MinPoolSize": 0,
+  "ConnectionTimeout": 30,
+  "UseSsl": false,
+  "SslMode": "Prefer",
+  "Schema": "public",
+  "EnableRetryOnFailure": true,
+  "MaxRetryCount": 5,
+  "EnableBatchCommands": true,
+  "UseJsonForComplexTypes": false,
+  "UseCaseInsensitiveCollation": true
+}
+```
+
+### MySQL
+
+```json
+"MySQL": {
+  "ConnectionString": "Server=localhost;Database=FluentCMS;User=root;Password=password;",
+  "ServerVersion": "8.0.28",
+  "UseConnectionPooling": true,
+  "MaxPoolSize": 100,
+  "ConnectionTimeout": 30,
+  "EnableRetryOnFailure": true,
+  "MaxRetryCount": 5,
+  "DefaultCharSet": "utf8mb4",
+  "EnableBatchCommands": true
 }
 ```
 
