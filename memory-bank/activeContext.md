@@ -21,6 +21,7 @@ The current development focus is on building the core backend components of the 
    - SQLite implementation (in progress)
    - SQL Server implementation (in progress)
    - MySQL implementation (near complete)
+   - PostgreSQL implementation (near complete)
 
 ## Recent Changes
 
@@ -51,7 +52,14 @@ The current development focus is on building the core backend components of the 
    - Added configuration options for connection, server version, and other MySQL-specific settings
    - Integrated with the Repository Factory for seamless selection
 
-6. **Advanced Querying Capabilities**
+6. **PostgreSQL Implementation**
+   - Implemented repository operations using Npgsql.EntityFrameworkCore.PostgreSQL
+   - Added configuration options for connection, server version, schema management, and PostgreSQL-specific features
+   - Added support for JSON/JSONB column types for complex properties
+   - Implemented case-insensitive text search with proper collation
+   - Integrated with Repository Factory for seamless selection
+
+7. **Advanced Querying Capabilities**
    - Implemented query parameters support with filtering, sorting, and pagination
    - Added `PagedResult<TEntity>` to represent paginated query results
    - Created fluent API for building queries with clear syntax

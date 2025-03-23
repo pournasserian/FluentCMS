@@ -72,6 +72,7 @@ public class RepositoryFactoryConfigurationTests
     [InlineData("ProviderTests:LiteDB")]
     [InlineData("ProviderTests:SQLite")]
     [InlineData("ProviderTests:MySQL")]
+    [InlineData("ProviderTests:PostgreSQL")]
     public void AddRepositoryFactory_SelectsCorrectProvider(string configSection)
     {
         // Arrange
@@ -102,7 +103,8 @@ public class RepositoryFactoryConfigurationTests
             new MongoDbProviderConfigurator(),
             new LiteDbProviderConfigurator(),
             new SqliteProviderConfigurator(),
-            new MySqlProviderConfigurator()
+            new MySqlProviderConfigurator(),
+            new PostgreSqlProviderConfigurator()
         };
         
         var configurator = configurators.FirstOrDefault(c => c.CanHandleProvider(options.Provider));

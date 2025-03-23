@@ -13,6 +13,7 @@ FluentCMS currently supports the following database providers:
 | MongoDB | ✅ Complete | `FluentCMS.Repositories.MongoDB` | Document storage, scalability, flexible schema |
 | LiteDB | ✅ Complete | `FluentCMS.Repositories.LiteDB` | Embedded database, serverless, simple deployment |
 | MySQL | ✅ Complete | `FluentCMS.Repositories.MySQL` | Popular relational database, community support, web applications |
+| PostgreSQL | ✅ Complete | `FluentCMS.Repositories.PostgreSQL` | Advanced relational database, JSON support, enterprise features |
 | Entity Framework Core | 🚧 In Progress | `FluentCMS.Repositories.EntityFramework` | ORM, relational databases, LINQ support |
 | SQLite | 🚧 In Progress | `FluentCMS.Repositories.SQLite` | File-based SQL, embedded, cross-platform |
 | SQL Server | 🚧 In Progress | `FluentCMS.Repositories.SqlServer` | Enterprise SQL, performance, scalability |
@@ -242,6 +243,7 @@ For detailed implementation information on each provider, see the following page
 - [MongoDB Provider](./MongoDB-Provider.md)
 - [LiteDB Provider](./LiteDB-Provider.md)
 - [MySQL Provider](./MySQL-Provider.md)
+- [PostgreSQL Provider](./PostgreSQL-Provider.md)
 - [EntityFramework Provider](./EntityFramework-Provider.md)
 - [SQLite Provider](./SQLite-Provider.md)
 - [SQL Server Provider](./SQL-Server-Provider.md)

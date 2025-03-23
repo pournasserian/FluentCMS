@@ -19,6 +19,7 @@
     <ProjectReference Include="..\FluentCMS.Repositories.LiteDB\FluentCMS.Repositories.LiteDB.csproj" />
     <ProjectReference Include="..\FluentCMS.Repositories.MongoDB\FluentCMS.Repositories.MongoDB.csproj" />
     <ProjectReference Include="..\FluentCMS.Repositories.MySQL\FluentCMS.Repositories.MySQL.csproj" />
+    <ProjectReference Include="..\FluentCMS.Repositories.PostgreSQL\FluentCMS.Repositories.PostgreSQL.csproj" />
     <ProjectReference Include="..\FluentCMS.Repositories.SQLite\FluentCMS.Repositories.SQLite.csproj" />
     <ProjectReference Include="..\FluentCMS.Repositories.SqlServer\FluentCMS.Repositories.SqlServer.csproj" />
   </ItemGroup>

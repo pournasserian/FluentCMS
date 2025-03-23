@@ -4,6 +4,7 @@ using FluentCMS.Repositories.Abstractions.Querying;
 using FluentCMS.Repositories.EntityFramework;
 using FluentCMS.Repositories.LiteDB;
 using FluentCMS.Repositories.MongoDB;
+using FluentCMS.Repositories.PostgreSQL;
 using FluentCMS.Repositories.SQLite;
 using FluentCMS.Repositories.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,10 +67,16 @@ public class RepositoryFactory<TEntity> : IBaseEntityRepository<TEntity> where T
                 // SQL Server uses EntityFrameworkEntityRepository with SQL Server-specific DbContext
                 return ActivatorUtilities.CreateInstance<EntityFrameworkEntityRepository<TEntity>>(
                     serviceProvider);
+                    
+            case "postgresql":
+            case "postgres":
+                // PostgreSQL uses EntityFrameworkEntityRepository with PostgreSQL-specific DbContext
+                return ActivatorUtilities.CreateInstance<EntityFrameworkEntityRepository<TEntity>>(
+                    serviceProvider);
 
             default:
                 throw new NotSupportedException($"Repository provider '{options.Provider}' is not supported. " +
-                    $"Valid providers are: MongoDB, LiteDB, EntityFramework, SQLite, SqlServer.");
+                    $"Valid providers are: MongoDB, LiteDB, EntityFramework, SQLite, SqlServer, PostgreSQL.");
         }
     }
 

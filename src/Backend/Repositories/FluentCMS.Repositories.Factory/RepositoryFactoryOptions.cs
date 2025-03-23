@@ -2,6 +2,7 @@ using FluentCMS.Repositories.EntityFramework;
 using FluentCMS.Repositories.LiteDB;
 using FluentCMS.Repositories.MongoDB;
 using FluentCMS.Repositories.MySQL;
+using FluentCMS.Repositories.PostgreSQL;
 using FluentCMS.Repositories.SQLite;
 using FluentCMS.Repositories.SqlServer;
 
@@ -14,7 +15,7 @@ public class RepositoryFactoryOptions
 {
     /// <summary>
     /// Gets or sets the provider type to use. 
-    /// Valid values: "MongoDB", "LiteDB", "EntityFramework", "SQLite", "SqlServer", "MySQL"
+    /// Valid values: "MongoDB", "LiteDB", "EntityFramework", "SQLite", "SqlServer", "MySQL", "PostgreSQL"
     /// </summary>
     public string Provider { get; set; } = "MongoDB";
     
@@ -53,4 +54,10 @@ public class RepositoryFactoryOptions
     /// Used when Provider is set to "MySQL".
     /// </summary>
     public MySqlOptions MySQL { get; set; } = new();
+    
+    /// <summary>
+    /// Gets or sets the PostgreSQL provider options.
+    /// Used when Provider is set to "PostgreSQL".
+    /// </summary>
+    public PostgreSqlOptions PostgreSQL { get; set; } = new();
 }
