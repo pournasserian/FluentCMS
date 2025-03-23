@@ -4,18 +4,10 @@ using Microsoft.Extensions.Options;
 
 namespace FluentCMS.Repositories.SQLite;
 
-/// <summary>
-/// SQLite implementation of the FluentCMS DbContext.
-/// </summary>
 public class SqliteDbContext : FluentCmsDbContext
 {
     private readonly SqliteOptions _sqliteOptions;
 
-    /// <summary>
-    /// Initializes a new instance of the SqliteDbContext class.
-    /// </summary>
-    /// <param name="options">The DbContext options.</param>
-    /// <param name="sqliteOptions">The SQLite configuration options.</param>
     public SqliteDbContext(
         DbContextOptions<SqliteDbContext> options,
         IOptions<SqliteOptions> sqliteOptions)
@@ -24,10 +16,6 @@ public class SqliteDbContext : FluentCmsDbContext
         _sqliteOptions = sqliteOptions?.Value ?? throw new ArgumentNullException(nameof(sqliteOptions));
     }
 
-    /// <summary>
-    /// Configures SQLite-specific options when the context is being configured.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -39,10 +27,6 @@ public class SqliteDbContext : FluentCmsDbContext
         base.OnConfiguring(optionsBuilder);
     }
 
-    /// <summary>
-    /// Configures SQLite-specific model creation options.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply SQLite-specific configurations
@@ -59,10 +43,6 @@ public class SqliteDbContext : FluentCmsDbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    /// <summary>
-    /// Applies SQLite-specific configuration to the DbContext options.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     private void ConfigureSqlite(DbContextOptionsBuilder optionsBuilder)
     {
         // Build connection string
@@ -79,10 +59,6 @@ public class SqliteDbContext : FluentCmsDbContext
         });
     }
 
-    /// <summary>
-    /// Builds the SQLite connection string based on the options.
-    /// </summary>
-    /// <returns>The connection string.</returns>
     private string BuildConnectionString()
     {
         // Start with the data source

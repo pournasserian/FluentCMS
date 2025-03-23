@@ -4,18 +4,10 @@ using Microsoft.Extensions.Options;
 
 namespace FluentCMS.Repositories.PostgreSQL;
 
-/// <summary>
-/// PostgreSQL implementation of the FluentCMS DbContext.
-/// </summary>
 public class PostgreSqlDbContext : FluentCmsDbContext
 {
     private readonly PostgreSqlOptions _postgresOptions;
 
-    /// <summary>
-    /// Initializes a new instance of the PostgreSqlDbContext class.
-    /// </summary>
-    /// <param name="options">The DbContext options.</param>
-    /// <param name="postgresOptions">The PostgreSQL configuration options.</param>
     public PostgreSqlDbContext(
         DbContextOptions<PostgreSqlDbContext> options,
         IOptions<PostgreSqlOptions> postgresOptions)
@@ -24,10 +16,6 @@ public class PostgreSqlDbContext : FluentCmsDbContext
         _postgresOptions = postgresOptions?.Value ?? throw new ArgumentNullException(nameof(postgresOptions));
     }
 
-    /// <summary>
-    /// Configures PostgreSQL-specific options when the context is being configured.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -39,10 +27,6 @@ public class PostgreSqlDbContext : FluentCmsDbContext
         base.OnConfiguring(optionsBuilder);
     }
 
-    /// <summary>
-    /// Configures PostgreSQL-specific model creation options.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply PostgreSQL-specific configurations
@@ -86,10 +70,6 @@ public class PostgreSqlDbContext : FluentCmsDbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    /// <summary>
-    /// Applies PostgreSQL-specific configuration to the DbContext options.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     private void ConfigurePostgreSql(DbContextOptionsBuilder optionsBuilder)
     {
         // Validate required options
@@ -130,10 +110,6 @@ public class PostgreSqlDbContext : FluentCmsDbContext
         });
     }
 
-    /// <summary>
-    /// Builds the PostgreSQL connection string based on the options.
-    /// </summary>
-    /// <returns>The connection string.</returns>
     private string BuildConnectionString()
     {
         // Start with the base connection string
@@ -166,5 +142,4 @@ public class PostgreSqlDbContext : FluentCmsDbContext
 
         return connectionString;
     }
-
 }

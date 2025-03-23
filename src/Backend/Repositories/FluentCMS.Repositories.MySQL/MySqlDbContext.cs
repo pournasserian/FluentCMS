@@ -6,18 +6,10 @@ using System.Linq;
 
 namespace FluentCMS.Repositories.MySQL;
 
-/// <summary>
-/// MySQL implementation of the FluentCMS DbContext.
-/// </summary>
 public class MySqlDbContext : FluentCmsDbContext
 {
     private readonly MySqlOptions _mysqlOptions;
 
-    /// <summary>
-    /// Initializes a new instance of the MySqlDbContext class.
-    /// </summary>
-    /// <param name="options">The DbContext options.</param>
-    /// <param name="mysqlOptions">The MySQL configuration options.</param>
     public MySqlDbContext(
         DbContextOptions<MySqlDbContext> options,
         IOptions<MySqlOptions> mysqlOptions)
@@ -26,10 +18,6 @@ public class MySqlDbContext : FluentCmsDbContext
         _mysqlOptions = mysqlOptions?.Value ?? throw new ArgumentNullException(nameof(mysqlOptions));
     }
 
-    /// <summary>
-    /// Configures MySQL-specific options when the context is being configured.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -41,10 +29,6 @@ public class MySqlDbContext : FluentCmsDbContext
         base.OnConfiguring(optionsBuilder);
     }
 
-    /// <summary>
-    /// Configures MySQL-specific model creation options.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply MySQL-specific configurations
@@ -61,10 +45,6 @@ public class MySqlDbContext : FluentCmsDbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    /// <summary>
-    /// Applies MySQL-specific configuration to the DbContext options.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     private void ConfigureMySql(DbContextOptionsBuilder optionsBuilder)
     {
         // Validate required options
@@ -93,10 +73,6 @@ public class MySqlDbContext : FluentCmsDbContext
         });
     }
 
-    /// <summary>
-    /// Builds the MySQL connection string based on the options.
-    /// </summary>
-    /// <returns>The connection string.</returns>
     private string BuildConnectionString()
     {
         // Start with the base connection string
@@ -130,10 +106,6 @@ public class MySqlDbContext : FluentCmsDbContext
         return connectionString;
     }
 
-    /// <summary>
-    /// Gets the MySQL server version from configuration.
-    /// </summary>
-    /// <returns>The server version.</returns>
     private Microsoft.EntityFrameworkCore.ServerVersion GetServerVersion()
     {
         // If specific server version is provided in options, use it

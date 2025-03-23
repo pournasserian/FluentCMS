@@ -170,7 +170,7 @@ See the [Sub-Project Registry](./memory-bank/subProjectRegistry.md) for a comple
 
 ### Additional Documentation
 
-- Code comments - All public APIs are documented with XML comments
+- Code comments 
 
 ## Roadmap
 

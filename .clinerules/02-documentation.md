@@ -24,25 +24,7 @@ This document outlines the documentation standards and best practices for the Fl
 ## 2. Code Documentation
 
 ### 2.1 XML Documentation
-- All public APIs must have XML documentation.
-- XML documentation should be more than just type information that the compiler already knows.
-- Include meaningful descriptions that explain concepts and considerations.
-- Document example usage where appropriate.
-
-```csharp
-/// <summary>
-/// Retrieves an entity by its unique identifier.
-/// </summary>
-/// <param name="id">The unique identifier of the entity to retrieve.</param>
-/// <returns>
-/// The entity with the specified ID, or null if no entity is found.
-/// </returns>
-/// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is null.</exception>
-/// <remarks>
-/// This method queries the database directly and does not use any caching mechanism.
-/// </remarks>
-public async Task<TEntity> GetById(string id)
-```
+- There is no need to XML documentation in source code
 
 ### 2.2 Code Comments
 - Add inline comments for complex algorithms or business rules.

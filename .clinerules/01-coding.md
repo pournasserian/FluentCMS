@@ -38,10 +38,7 @@ This document outlines the coding standards and best practices for the FluentCMS
 ## 3. Documentation
 
 ### 3.1 XML Documentation
-- All public APIs must have XML documentation.
-- Include `<summary>` tags for all public types and members.
-- Document parameters using `<param>` and return values using `<returns>`.
-- Use `<exception>` to document exceptions that may be thrown.
+- There is no need for XML documentation
 
 ### 3.2 Comments
 - Add comments for complex algorithms or business rules.
