@@ -117,22 +117,33 @@ services.AddLiteDbRepositories(options =>
 
 ## Documentation
 
-For more detailed documentation, please refer to:
+FluentCMS provides comprehensive documentation through its wiki and memory bank system:
 
-- [Memory Bank](./memory-bank/) - Project context, architecture, and progress documentation
-- `/docs` - Additional documentation (coming soon)
-- Code comments - All public APIs are documented with XML comments
+### Wiki Documentation
 
-### Memory Bank Structure
+The [wiki](./wiki/) contains reference documentation explaining how FluentCMS works:
 
-FluentCMS uses a hierarchical memory bank system to maintain context across different components:
+- [Home](./wiki/Home.md) - Main documentation landing page
+- [Architecture Overview](./wiki/Architecture-Overview.md) - System architecture and design
+- [Repository Pattern](./wiki/Repository-Pattern.md) - Repository implementation details
+- [Entity Model](./wiki/Entity-Model.md) - Core entity structure
+- [Database Providers](./wiki/Database-Providers.md) - Database provider implementations
+- [Memory Bank System](./wiki/Memory-Bank-System.md) - Explanation of the memory bank approach
+
+### Memory Bank
+
+The [memory bank](./memory-bank/) tracks development context and current status:
 
 - **Main Memory Bank** (`/memory-bank/`) - Overall project context and architecture
 - **Sub-Project Memory Banks** - Component-specific details:
-  - [Backend Memory Bank](./src/Backend/memory-bank/) (coming soon)
-  - [Repositories Memory Bank](./src/Backend/Repositories/memory-bank/) (coming soon)
+  - [Backend Memory Bank](./src/Backend/memory-bank/) - Backend component context
+  - [Repositories Memory Bank](./src/Backend/Repositories/memory-bank/) - Repository implementations context
 
 See the [Sub-Project Registry](./memory-bank/subProjectRegistry.md) for a complete list of sub-projects.
+
+### Additional Documentation
+
+- Code comments - All public APIs are documented with XML comments
 
 ## Roadmap
 
