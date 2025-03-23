@@ -27,6 +27,8 @@ Key aspects:
 ### Database Providers
 - ✅ MongoDB implementation
 - ✅ LiteDB implementation
+- ✅ PostgreSQL implementation
+- ✅ MySQL implementation
 - 🚧 Entity Framework Core support (coming soon)
 - 🚧 SQLite support (coming soon)
 - 🚧 SQL Server support (coming soon)
@@ -59,9 +61,11 @@ graph TD
     
     E1[MongoDB] --> E
     E2[LiteDB] --> E
-    E3[Entity Framework] --> E
-    E4[SQLite] --> E
-    E5[SQL Server] --> E
+    E3[PostgreSQL] --> E
+    E4[MySQL] --> E
+    E5[Entity Framework] --> E
+    E6[SQLite] --> E
+    E7[SQL Server] --> E
 ```
 
 ## Getting Started
@@ -69,7 +73,7 @@ graph TD
 ### Prerequisites
 - .NET 8.0 SDK or later
 - Visual Studio 2022 or Visual Studio Code
-- Database of your choice (MongoDB, LiteDB, SQL Server, or SQLite)
+- Database of your choice (MongoDB, LiteDB, PostgreSQL, MySQL, SQL Server, or SQLite)
 
 ### Setup
 
@@ -112,6 +116,29 @@ services.AddMongoDbRepositories(options =>
 services.AddLiteDbRepositories(options =>
 {
     options.ConnectionString = "Filename=fluentcms.db;Connection=shared";
+});
+```
+
+### PostgreSQL Configuration
+
+```csharp
+// Program.cs or Startup.cs
+services.AddPostgreSqlRepositories(options =>
+{
+    options.ConnectionString = "Host=localhost;Database=FluentCMS;Username=postgres;Password=yourpassword;";
+    options.UseJsonForComplexTypes = true;
+    options.UseCaseInsensitiveCollation = true;
+});
+```
+
+### MySQL Configuration
+
+```csharp
+// Program.cs or Startup.cs
+services.AddMySqlRepositories(options =>
+{
+    options.ConnectionString = "Server=localhost;Database=FluentCMS;User=root;Password=password;";
+    options.ServerVersion = "8.0.28"; // Optional specific version
 });
 ```
 
