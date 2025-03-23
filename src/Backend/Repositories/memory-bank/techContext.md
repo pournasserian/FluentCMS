@@ -66,6 +66,18 @@ public interface IBaseEntityRepository<TEntity> where TEntity : class, IBaseEnti
   - `EntityFrameworkEntityRepository<TEntity>`
   - `EntityFrameworkOptions`
 
+### MySQL Provider
+
+- **Core Library**: Pomelo.EntityFrameworkCore.MySql
+- **Database Type**: Open-source relational database
+- **Connection**: MySqlConnection with connection pooling
+- **Features**: MySQL 5.6+ and MariaDB 10.1+ support
+- **Configuration**: MySqlOptions with connection string and server version
+- **Key Implementation Classes**:
+  - `MySqlDbContext`
+  - `MySqlEntityRepository<TEntity>`
+  - `MySqlOptions`
+
 ### SQLite Provider
 
 - **Core Library**: Microsoft.EntityFrameworkCore.Sqlite
@@ -149,6 +161,23 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
 - LINQ for queries
 - SaveChanges/SaveChangesAsync for transaction handling
 
+### MySQL Implementation
+
+```csharp
+public class MySqlEntityRepository<TEntity> : EntityFrameworkEntityRepository<TEntity> 
+    where TEntity : class, IBaseEntity
+{
+    // Inherits implementation from EntityFrameworkEntityRepository
+    // with MySQL-specific configurations
+}
+```
+
+**Key Technical Approaches**:
+- Built on Entity Framework Core infrastructure
+- MySQL-specific connection handling
+- Server version detection and configuration
+- Character set and collation settings
+
 ## Provider Registration Pattern
 
 All providers follow a consistent registration pattern using extension methods on IServiceCollection:
@@ -163,6 +192,12 @@ services.AddMongoDbRepositories(options => {
 // LiteDB registration
 services.AddLiteDbRepositories(options => {
     options.ConnectionString = "Filename=fluentcms.db;Connection=shared";
+});
+
+// MySQL registration
+services.AddMySqlRepositories(options => {
+    options.ConnectionString = "Server=localhost;Database=FluentCMS;User=root;Password=password;";
+    options.ServerVersion = "8.0.28"; // Optional specific version
 });
 
 // EF Core/SQL Server registration
@@ -185,7 +220,7 @@ services.AddSqliteRepositories(options => {
 - Full document replacement on update
 - Explicit handling of concurrent modifications
 
-**Entity Framework Core**:
+**Entity Framework Core (including MySQL, SQL Server, SQLite)**:
 - Built-in change tracking
 - Partial updates possible
 - Concurrency handling through concurrency tokens
@@ -202,7 +237,7 @@ services.AddSqliteRepositories(options => {
 - Manual transaction blocks
 - Limited multi-document transaction support
 
-**Entity Framework Core**:
+**Entity Framework Core (including MySQL, SQL Server, SQLite)**:
 - Full transaction support
 - DbContext.Database.BeginTransaction()
 - Distributed transaction support where available
@@ -220,7 +255,7 @@ services.AddSqliteRepositories(options => {
 - LINQ-like syntax with limitations
 - Index support for common scenarios
 
-**Entity Framework Core**:
+**Entity Framework Core (including MySQL, SQL Server, SQLite)**:
 - Full LINQ support
 - Provider-specific translations
 - Eager and lazy loading
@@ -242,12 +277,27 @@ services.AddSqliteRepositories(options => {
 - File size management
 - Memory-mapped file configuration
 
-### SQL-Based Optimizations
+### MySQL Optimizations
+
+- Appropriate index creation
+- Query plan optimization 
+- Connection pooling configuration
+- Character set and collation settings
+- Server version awareness
+
+### SQL Server Optimizations
 
 - Appropriate index creation
 - Query plan analysis
 - Connection pooling
 - Batched operations
+
+### SQLite Optimizations
+
+- WAL mode for better concurrency
+- Connection pooling
+- Appropriate index creation
+- In-memory mode for testing
 
 ## Relation to Backend Tech Context
 

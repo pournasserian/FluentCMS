@@ -13,6 +13,7 @@ This directory contains the repository pattern implementations for different dat
   - `FluentCMS.Repositories.EntityFramework` - Entity Framework Core base implementation
   - `FluentCMS.Repositories.SQLite` - SQLite implementation via Entity Framework
   - `FluentCMS.Repositories.SqlServer` - SQL Server implementation via Entity Framework
+  - `FluentCMS.Repositories.MySQL` - MySQL implementation via Pomelo Entity Framework
 
 ## Repository Pattern
 
@@ -42,6 +43,7 @@ Each provider has different characteristics:
 - **Entity Framework**: Familiar ORM experience with strong LINQ support
 - **SQLite**: Lightweight file-based SQL database with EF Core support
 - **SQL Server**: Full-featured relational database with advanced capabilities
+- **MySQL**: Popular open-source relational database with wide community support
 
 ## Configuration Examples
 
@@ -83,6 +85,16 @@ services.AddSqliteRepositories(options =>
 });
 ```
 
+### MySQL
+
+```csharp
+services.AddMySqlRepositories(options =>
+{
+    options.ConnectionString = "Server=localhost;Database=FluentCMS;User=root;Password=password;";
+    options.ServerVersion = "8.0.28"; // Optional specific version
+});
+```
+
 ## Memory Bank
 
 This sub-project maintains its own memory bank:
@@ -99,6 +111,7 @@ See the [Backend memory bank](../memory-bank/) and [main FluentCMS memory bank](
 - ✅ Repository abstraction layer complete
 - ✅ MongoDB provider complete
 - ✅ LiteDB provider complete
+- ✅ MySQL provider complete
 - 🚧 Entity Framework Core provider in progress
 - 🚧 SQLite provider in progress
 - 🚧 SQL Server provider in progress

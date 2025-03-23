@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../../../src/Backend/Repositories/FluentCMS.Repositories.Factory/FluentCMS.Repositories.Factory.csproj" />
+    <ProjectReference Include="../../../../../src/Backend/Repositories/FluentCMS.Repositories.MySQL/FluentCMS.Repositories.MySQL.csproj" />
   </ItemGroup>
 
   <ItemGroup>

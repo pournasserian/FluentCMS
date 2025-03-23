@@ -39,6 +39,9 @@ public static class ServiceCollectionExtensions
         
         services.Configure<FluentCMS.Repositories.SqlServer.SqlServerOptions>(
             configuration.GetSection($"{sectionName}:SqlServer"));
+        
+        services.Configure<FluentCMS.Repositories.MySQL.MySqlOptions>(
+            configuration.GetSection($"{sectionName}:MySQL"));
 
         // Read options to determine which provider to configure
         var options = new RepositoryFactoryOptions();
@@ -95,7 +98,8 @@ public static class ServiceCollectionExtensions
             new LiteDbProviderConfigurator(),
             new EntityFrameworkProviderConfigurator(),
             new SqliteProviderConfigurator(),
-            new SqlServerProviderConfigurator()
+            new SqlServerProviderConfigurator(),
+            new MySqlProviderConfigurator()
         };
         
         // Find the appropriate configurator for the selected provider
@@ -105,7 +109,7 @@ public static class ServiceCollectionExtensions
         {
             throw new NotSupportedException(
                 $"Repository provider '{options.Provider}' is not supported. " +
-                $"Valid providers are: MongoDB, LiteDB, EntityFramework, SQLite, SqlServer.");
+                $"Valid providers are: MongoDB, LiteDB, EntityFramework, SQLite, SqlServer, MySQL.");
         }
         
         // Configure the provider
