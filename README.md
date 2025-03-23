@@ -119,8 +119,20 @@ services.AddLiteDbRepositories(options =>
 
 For more detailed documentation, please refer to:
 
+- [Memory Bank](./memory-bank/) - Project context, architecture, and progress documentation
 - `/docs` - Additional documentation (coming soon)
 - Code comments - All public APIs are documented with XML comments
+
+### Memory Bank Structure
+
+FluentCMS uses a hierarchical memory bank system to maintain context across different components:
+
+- **Main Memory Bank** (`/memory-bank/`) - Overall project context and architecture
+- **Sub-Project Memory Banks** - Component-specific details:
+  - [Backend Memory Bank](./src/Backend/memory-bank/) (coming soon)
+  - [Repositories Memory Bank](./src/Backend/Repositories/memory-bank/) (coming soon)
+
+See the [Sub-Project Registry](./memory-bank/subProjectRegistry.md) for a complete list of sub-projects.
 
 ## Roadmap
 
