@@ -17,7 +17,10 @@ The current development focus is on building the core backend components of the 
 3. **Database Provider Support**
    - MongoDB implementation (near complete)
    - LiteDB implementation (near complete)
-   - Preparing for Entity Framework, SQLite, and SQL Server implementations
+   - Entity Framework Core implementation (in progress)
+   - SQLite implementation (in progress)
+   - SQL Server implementation (in progress)
+   - MySQL implementation (near complete)
 
 ## Recent Changes
 
@@ -43,12 +46,17 @@ The current development focus is on building the core backend components of the 
    - Added configuration-based repository selection
    - Developed unit tests for factory functionality
 
+5. **MySQL Implementation**
+   - Implemented repository operations using Pomelo.EntityFrameworkCore.MySql
+   - Added configuration options for connection, server version, and other MySQL-specific settings
+   - Integrated with the Repository Factory for seamless selection
+
 ## Next Steps
 
 The following tasks are planned for the immediate future:
 
 1. **Complete Additional Repository Implementations**
-   - Implement Entity Framework Core repository
+   - Complete Entity Framework Core repository implementation
    - Finish SQLite repository implementation
    - Complete SQL Server repository implementation
 

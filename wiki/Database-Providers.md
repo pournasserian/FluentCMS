@@ -12,6 +12,7 @@ FluentCMS currently supports the following database providers:
 |----------|--------|----------------|-----------|
 | MongoDB | ✅ Complete | `FluentCMS.Repositories.MongoDB` | Document storage, scalability, flexible schema |
 | LiteDB | ✅ Complete | `FluentCMS.Repositories.LiteDB` | Embedded database, serverless, simple deployment |
+| MySQL | ✅ Complete | `FluentCMS.Repositories.MySQL` | Popular relational database, community support, web applications |
 | Entity Framework Core | 🚧 In Progress | `FluentCMS.Repositories.EntityFramework` | ORM, relational databases, LINQ support |
 | SQLite | 🚧 In Progress | `FluentCMS.Repositories.SQLite` | File-based SQL, embedded, cross-platform |
 | SQL Server | 🚧 In Progress | `FluentCMS.Repositories.SqlServer` | Enterprise SQL, performance, scalability |
@@ -68,6 +69,33 @@ services.AddMongoDbRepositories(options =>
 services.AddLiteDbRepositories(options =>
 {
     options.ConnectionString = "Filename=fluentcms.db;Connection=shared";
+});
+```
+
+### MySQL Provider
+
+**Technology:** Popular open-source relational database
+
+**Key Features:**
+- Well-established relational database system
+- Strong community support
+- Cross-platform compatibility
+- Good performance for web applications
+- Rich ecosystem of tools and extensions
+
+**Ideal For:**
+- Web applications and content management systems
+- Applications requiring ACID compliance
+- Systems with well-defined relational schemas
+- Projects needing broad hosting support
+- Open-source focused development
+
+**Configuration Example:**
+```csharp
+services.AddMySqlRepositories(options =>
+{
+    options.ConnectionString = "Server=localhost;Database=FluentCMS;User=root;Password=password;";
+    options.ServerVersion = "8.0.28"; // Optional specific version
 });
 ```
 
@@ -213,6 +241,7 @@ For detailed implementation information on each provider, see the following page
 
 - [MongoDB Provider](./MongoDB-Provider.md)
 - [LiteDB Provider](./LiteDB-Provider.md)
+- [MySQL Provider](./MySQL-Provider.md)
 - [EntityFramework Provider](./EntityFramework-Provider.md)
 - [SQLite Provider](./SQLite-Provider.md)
 - [SQL Server Provider](./SQL-Server-Provider.md)
