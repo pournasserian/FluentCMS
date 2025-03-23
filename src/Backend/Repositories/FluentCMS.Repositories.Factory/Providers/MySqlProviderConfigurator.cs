@@ -5,26 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.Factory.Providers;
 
-/// <summary>
-/// Configurator for MySQL provider.
-/// </summary>
 public class MySqlProviderConfigurator : IProviderConfigurator
 {
-    /// <summary>
-    /// Determines if this configurator can handle the specified provider.
-    /// </summary>
-    /// <param name="providerName">The provider name.</param>
-    /// <returns>True if the provider is MySQL; otherwise, false.</returns>
     public bool CanHandleProvider(string providerName)
     {
         return string.Equals(providerName, "MySQL", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Configures MySQL repository services.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="options">The repository factory options.</param>
     public void ConfigureServices(IServiceCollection services, RepositoryFactoryOptions options)
     {
         // Validate configuration before proceeding
@@ -62,11 +49,6 @@ public class MySqlProviderConfigurator : IProviderConfigurator
         });
     }
 
-    /// <summary>
-    /// Validates the MySQL configuration.
-    /// </summary>
-    /// <param name="options">The repository factory options.</param>
-    /// <exception cref="ArgumentException">Thrown when MySQL configuration is invalid.</exception>
     public void ValidateConfiguration(RepositoryFactoryOptions options)
     {
         // Check if connection string is provided

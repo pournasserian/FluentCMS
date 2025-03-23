@@ -4,27 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.Factory.Providers;
 
-/// <summary>
-/// Configurator for Entity Framework Core provider.
-/// </summary>
 public class EntityFrameworkProviderConfigurator : IProviderConfigurator
 {
-    /// <summary>
-    /// Determines if this configurator can handle the specified provider.
-    /// </summary>
-    /// <param name="providerName">The provider name.</param>
-    /// <returns>True if the provider is EntityFramework; otherwise, false.</returns>
     public bool CanHandleProvider(string providerName)
     {
         return string.Equals(providerName, "EntityFramework", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(providerName, "EF", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Configures Entity Framework repository services.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="options">The repository factory options.</param>
     public void ConfigureServices(IServiceCollection services, RepositoryFactoryOptions options)
     {
         // Validate configuration before proceeding
@@ -48,11 +35,6 @@ public class EntityFrameworkProviderConfigurator : IProviderConfigurator
         // configuration methods.
     }
 
-    /// <summary>
-    /// Validates the Entity Framework configuration.
-    /// </summary>
-    /// <param name="options">The repository factory options.</param>
-    /// <exception cref="ArgumentException">Thrown when Entity Framework configuration is invalid.</exception>
     public void ValidateConfiguration(RepositoryFactoryOptions options)
     {
         // No validation needed for core EF options

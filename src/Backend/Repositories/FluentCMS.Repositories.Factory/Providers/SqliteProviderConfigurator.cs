@@ -5,26 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.Factory.Providers;
 
-/// <summary>
-/// Configurator for SQLite provider.
-/// </summary>
 public class SqliteProviderConfigurator : IProviderConfigurator
 {
-    /// <summary>
-    /// Determines if this configurator can handle the specified provider.
-    /// </summary>
-    /// <param name="providerName">The provider name.</param>
-    /// <returns>True if the provider is SQLite; otherwise, false.</returns>
     public bool CanHandleProvider(string providerName)
     {
         return string.Equals(providerName, "SQLite", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Configures SQLite repository services.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="options">The repository factory options.</param>
     public void ConfigureServices(IServiceCollection services, RepositoryFactoryOptions options)
     {
         // Validate configuration before proceeding
@@ -69,11 +56,6 @@ public class SqliteProviderConfigurator : IProviderConfigurator
         });
     }
 
-    /// <summary>
-    /// Validates the SQLite configuration.
-    /// </summary>
-    /// <param name="options">The repository factory options.</param>
-    /// <exception cref="ArgumentException">Thrown when SQLite configuration is invalid.</exception>
     public void ValidateConfiguration(RepositoryFactoryOptions options)
     {
         // Check if DatabasePath is provided

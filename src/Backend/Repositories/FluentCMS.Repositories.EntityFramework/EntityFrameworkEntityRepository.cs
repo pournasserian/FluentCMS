@@ -7,21 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace FluentCMS.Repositories.EntityFramework;
 
-/// <summary>
-/// Repository implementation for Entity Framework database providers.
-/// </summary>
-/// <typeparam name="TEntity">The entity type, which must implement IBaseEntity.</typeparam>
 public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TEntity> where TEntity : class, IBaseEntity
 {
     protected readonly FluentCmsDbContext _dbContext;
     protected readonly DbSet<TEntity> _dbSet;
     protected readonly ILogger<EntityFrameworkEntityRepository<TEntity>> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of the EntityFrameworkEntityRepository class.
-    /// </summary>
-    /// <param name="dbContext">The database context.</param>
-    /// <param name="logger">The logger instance.</param>
     public EntityFrameworkEntityRepository(
         FluentCmsDbContext dbContext,
         ILogger<EntityFrameworkEntityRepository<TEntity>> logger)
@@ -31,12 +22,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <summary>
-    /// Creates a new entity in the database.
-    /// </summary>
-    /// <param name="entity">The entity to create.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created entity, or null if creation failed.</returns>
     public async Task<TEntity?> Create(TEntity entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
@@ -70,12 +55,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Creates multiple entities in the database.
-    /// </summary>
-    /// <param name="entities">The entities to create.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created entities.</returns>
     public async Task<IEnumerable<TEntity>> CreateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entities);
@@ -115,12 +94,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Updates an existing entity in the database.
-    /// </summary>
-    /// <param name="entity">The entity to update.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated entity, or null if the update failed.</returns>
     public async Task<TEntity?> Update(TEntity entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
@@ -164,12 +137,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Updates multiple entities in the database.
-    /// </summary>
-    /// <param name="entities">The entities to update.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated entities.</returns>
     public async Task<IEnumerable<TEntity>> UpdateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entities);
@@ -240,12 +207,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Deletes an entity from the database by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity to delete.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The deleted entity, or null if no entity was found.</returns>
     public async Task<TEntity?> Delete(Guid id, CancellationToken cancellationToken = default)
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
@@ -272,12 +233,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Deletes multiple entities from the database by their IDs.
-    /// </summary>
-    /// <param name="ids">The IDs of the entities to delete.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The deleted entities.</returns>
     public async Task<IEnumerable<TEntity>> DeleteMany(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(ids);
@@ -310,11 +265,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Gets all entities from the database.
-    /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>All entities.</returns>
     public async Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default)
     {
         try
@@ -329,12 +279,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Gets an entity by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity to get.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The entity, or null if no entity was found.</returns>
     public async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
@@ -351,12 +295,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Gets multiple entities by their IDs.
-    /// </summary>
-    /// <param name="ids">The IDs of the entities to get.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The entities found.</returns>
     public async Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(ids);
@@ -378,12 +316,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    /// <summary>
-    /// Retrieves a paged list of entities based on the provided query parameters.
-    /// </summary>
-    /// <param name="queryParameters">The query parameters including filtering, sorting, and pagination options.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A paged result containing the requested entities and pagination metadata.</returns>
     public async Task<PagedResult<TEntity>> QueryAsync(
         QueryParameters<TEntity>? queryParameters = null,
         CancellationToken cancellationToken = default)
@@ -477,11 +409,6 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
     
-    /// <summary>
-    /// Gets the property name from a lambda expression.
-    /// </summary>
-    /// <param name="expression">The lambda expression.</param>
-    /// <returns>The property name.</returns>
     private string GetPropertyNameFromExpression(LambdaExpression expression)
     {
         if (expression.Body is MemberExpression memberExpression)
