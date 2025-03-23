@@ -51,6 +51,14 @@ The current development focus is on building the core backend components of the 
    - Added configuration options for connection, server version, and other MySQL-specific settings
    - Integrated with the Repository Factory for seamless selection
 
+6. **Advanced Querying Capabilities**
+   - Implemented query parameters support with filtering, sorting, and pagination
+   - Added `PagedResult<TEntity>` to represent paginated query results
+   - Created fluent API for building queries with clear syntax
+   - Implemented multi-field sorting with sort direction control
+   - Added `QueryAsync` method to repository interface
+   - Implemented provider-specific optimizations for MongoDB and LiteDB
+
 ## Next Steps
 
 The following tasks are planned for the immediate future:
@@ -85,14 +93,19 @@ The following tasks are planned for the immediate future:
 - Sorting
 - Filtering
 
-**Options Being Considered:**
-- Extend the base repository interface with additional methods
-- Create specialized query objects/specifications
-- Use extension methods for advanced querying
-- Implement a CQRS pattern for more complex operations
+**Implemented Solution:**
+We have adopted a combined approach using:
+- A `QueryParameters<TEntity>` class that encapsulates filtering, sorting, and pagination
+- A fluent API for building queries (e.g., `WithFilter()`, `AddSortAscending()`, `WithPaging()`)
+- A `PagedResult<TEntity>` class for returning paged data with metadata
+- Provider-specific optimizations to leverage database capabilities
 
-**Current Thinking:**
-The team is leaning toward using a combination of specification pattern and extension methods to keep the base interface clean while enabling advanced querying capabilities.
+The implemented solution balances simplicity of use with flexibility, allowing filtering with LINQ expressions, multi-field sorting with direction control, and standard pagination. This approach maintains the repository abstraction while enabling advanced query capabilities.
+
+**Future Enhancements:**
+- Add projection capabilities to select specific fields
+- Consider implementing a more comprehensive specification pattern for complex queries
+- Explore caching options for frequently executed queries
 
 ### 2. Content Type System Design
 

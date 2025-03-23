@@ -1,5 +1,6 @@
 using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
+using FluentCMS.Repositories.Abstractions.Querying;
 using FluentCMS.Repositories.EntityFramework;
 using FluentCMS.Repositories.LiteDB;
 using FluentCMS.Repositories.MongoDB;
@@ -109,4 +110,8 @@ public class RepositoryFactory<TEntity> : IBaseEntityRepository<TEntity> where T
     /// <inheritdoc />
     public Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default) 
         => _repository.GetByIds(ids, cancellationToken);
+        
+    /// <inheritdoc />
+    public Task<PagedResult<TEntity>> QueryAsync(QueryParameters<TEntity>? queryParameters = default, CancellationToken cancellationToken = default)
+        => _repository.QueryAsync(queryParameters, cancellationToken);
 }

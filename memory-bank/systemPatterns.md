@@ -183,6 +183,7 @@ classDiagram
         +Task~IEnumerable~TEntity~~ GetAll()
         +Task~TEntity?~ GetById(Guid id)
         +Task~IEnumerable~TEntity~~ GetByIds(IEnumerable~Guid~ ids)
+        +Task~PagedResult~TEntity~~ QueryAsync(QueryParameters~TEntity~ parameters)
     }
     
     class MongoDbEntityRepository~TEntity~ {
@@ -216,6 +217,46 @@ classDiagram
     
     IBaseEntityRepository <|.. MongoDbEntityRepository
     IBaseEntityRepository <|.. LiteDbEntityRepository
+```
+
+### Query Parameters Pattern
+
+```mermaid
+classDiagram
+    class QueryParameters~TEntity~ {
+        +Expression~Func~TEntity, bool~~ FilterExpression
+        +List~SortOption~TEntity~~ SortOptions
+        +int PageNumber
+        +int PageSize
+        +WithFilter(Expression filter)
+        +AddSortAscending(Expression keySelector)
+        +AddSortDescending(Expression keySelector)
+        +WithPaging(int pageNumber, int pageSize)
+    }
+    
+    class SortOption~TEntity~ {
+        +LambdaExpression KeySelector
+        +SortDirection Direction
+    }
+    
+    class PagedResult~TEntity~ {
+        +IEnumerable~TEntity~ Items
+        +int PageNumber
+        +int PageSize
+        +long TotalCount
+        +int TotalPages
+        +bool HasPrevious
+        +bool HasNext
+    }
+    
+    class SortDirection {
+        <<enumeration>>
+        Ascending
+        Descending
+    }
+    
+    QueryParameters --> SortOption : contains
+    SortOption --> SortDirection : uses
 ```
 
 ### Dependency Injection Flow

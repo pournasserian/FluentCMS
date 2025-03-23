@@ -1,5 +1,6 @@
 using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
+using FluentCMS.Repositories.Abstractions.Querying;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -438,5 +439,82 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
                 typeof(TEntity).Name);
             return [];
         }
+    }
+
+    /// <summary>
+    /// Retrieves a paged list of entities based on the provided query parameters.
+    /// </summary>
+    /// <param name="queryParameters">The query parameters including filtering, sorting, and pagination options.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A paged result containing the requested entities and pagination metadata.</returns>
+    public async Task<PagedResult<TEntity>> QueryAsync(
+        QueryParameters<TEntity>? queryParameters = null,
+        CancellationToken cancellationToken = default)
+    {
+        var parameters = queryParameters ?? new QueryParameters<TEntity>();
+        
+        try
+        {
+            // Build filter
+            var filter = parameters.FilterExpression != null 
+                ? Builders<TEntity>.Filter.Where(parameters.FilterExpression)
+                : Builders<TEntity>.Filter.Empty;
+                
+            // Get total count
+            var totalCount = await _collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+            
+            // Build query
+            var query = _collection.Find(filter);
+            
+            // Apply sorting
+            if (parameters.SortOptions.Any())
+            {
+                var sortDefinitions = new List<SortDefinition<TEntity>>();
+                
+                foreach (var sortOption in parameters.SortOptions)
+                {
+                    if (sortOption.Direction == FluentCMS.Repositories.Abstractions.Querying.SortDirection.Ascending)
+                        sortDefinitions.Add(Builders<TEntity>.Sort.Ascending(GetSortPropertyName(sortOption.KeySelector)));
+                    else
+                        sortDefinitions.Add(Builders<TEntity>.Sort.Descending(GetSortPropertyName(sortOption.KeySelector)));
+                }
+                
+                if (sortDefinitions.Any())
+                    query = query.Sort(Builders<TEntity>.Sort.Combine(sortDefinitions));
+            }
+            
+            // Apply pagination
+            var skip = (parameters.PageNumber - 1) * parameters.PageSize;
+            query = query.Skip(skip).Limit(parameters.PageSize);
+            
+            // Execute query
+            var items = await query.ToListAsync(cancellationToken);
+            
+            return new PagedResult<TEntity>(
+                items,
+                parameters.PageNumber,
+                parameters.PageSize,
+                totalCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error querying entities of type {EntityType}", typeof(TEntity).Name);
+            return new PagedResult<TEntity>(Enumerable.Empty<TEntity>(), parameters.PageNumber, parameters.PageSize, 0);
+        }
+    }
+    
+    /// <summary>
+    /// Extracts the property name from an expression.
+    /// </summary>
+    /// <param name="expression">The lambda expression.</param>
+    /// <returns>The property name.</returns>
+    private string GetSortPropertyName(LambdaExpression expression)
+    {
+        if (expression.Body is MemberExpression memberExpression)
+        {
+            return memberExpression.Member.Name;
+        }
+        
+        throw new ArgumentException("Expression must be a member access expression");
     }
 }
