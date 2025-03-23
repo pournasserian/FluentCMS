@@ -1,5 +1,7 @@
 using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
+using FluentCMS.Repositories.Abstractions.Querying;
+using System.Linq.Expressions;
 using LiteDB;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -333,6 +335,114 @@ public class LiteDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> wh
                 typeof(TEntity).Name);
             return [];
         }
+    }
+
+    /// <summary>
+    /// Retrieves a paged list of entities based on the provided query parameters.
+    /// </summary>
+    /// <param name="queryParameters">The query parameters including filtering, sorting, and pagination options.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A paged result containing the requested entities and pagination metadata.</returns>
+    public async Task<PagedResult<TEntity>> QueryAsync(
+        QueryParameters<TEntity>? queryParameters = null,
+        CancellationToken cancellationToken = default)
+    {
+        var parameters = queryParameters ?? new QueryParameters<TEntity>();
+        
+        try
+        {
+            return await Task.Run(() =>
+            {
+                IEnumerable<TEntity> results;
+                
+                // Apply filter if provided
+                if (parameters.FilterExpression != null)
+                {
+                    results = _collection.Find(parameters.FilterExpression);
+                }
+                else
+                {
+                    results = _collection.FindAll();
+                }
+                
+                // Get total count before pagination
+                var totalCount = results.Count();
+                
+                // Apply sorting
+                if (parameters.SortOptions.Any())
+                {
+                    // We need to apply sorting in-memory since we already executed the query
+                    var firstSortOption = parameters.SortOptions.First();
+                    var propertyInfo = typeof(TEntity).GetProperty(GetPropertyName(firstSortOption.KeySelector));
+                    
+                    if (propertyInfo != null)
+                    {
+                        if (firstSortOption.Direction == SortDirection.Ascending)
+                        {
+                            results = results.OrderBy(e => propertyInfo.GetValue(e));
+                        }
+                        else
+                        {
+                            results = results.OrderByDescending(e => propertyInfo.GetValue(e));
+                        }
+                        
+                        // Apply additional sort options
+                        foreach (var sortOption in parameters.SortOptions.Skip(1))
+                        {
+                            propertyInfo = typeof(TEntity).GetProperty(GetPropertyName(sortOption.KeySelector));
+                            if (propertyInfo != null)
+                            {
+                                var orderedResults = results as IOrderedEnumerable<TEntity>;
+                                if (sortOption.Direction == SortDirection.Ascending)
+                                {
+                                    results = orderedResults!.ThenBy(e => propertyInfo.GetValue(e));
+                                }
+                                else
+                                {
+                                    results = orderedResults!.ThenByDescending(e => propertyInfo.GetValue(e));
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Apply pagination
+                var items = results
+                    .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+                    .Take(parameters.PageSize)
+                    .ToList();
+                
+                return new PagedResult<TEntity>(
+                    items,
+                    parameters.PageNumber,
+                    parameters.PageSize,
+                    totalCount);
+            }, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error querying entities of type {EntityType}", typeof(TEntity).Name);
+            return new PagedResult<TEntity>(
+                Enumerable.Empty<TEntity>(), 
+                parameters.PageNumber, 
+                parameters.PageSize, 
+                0);
+        }
+    }
+    
+    /// <summary>
+    /// Gets the property name from an expression.
+    /// </summary>
+    /// <param name="expression">The lambda expression.</param>
+    /// <returns>The property name.</returns>
+    private string GetPropertyName(LambdaExpression expression)
+    {
+        if (expression.Body is MemberExpression memberExpression)
+        {
+            return memberExpression.Member.Name;
+        }
+        
+        throw new ArgumentException("Expression must be a member access expression");
     }
 
     /// <summary>

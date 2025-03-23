@@ -1,5 +1,7 @@
 using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
+using FluentCMS.Repositories.Abstractions.Querying;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -374,5 +376,119 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
                 typeof(TEntity).Name);
             return [];
         }
+    }
+
+    /// <summary>
+    /// Retrieves a paged list of entities based on the provided query parameters.
+    /// </summary>
+    /// <param name="queryParameters">The query parameters including filtering, sorting, and pagination options.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A paged result containing the requested entities and pagination metadata.</returns>
+    public async Task<PagedResult<TEntity>> QueryAsync(
+        QueryParameters<TEntity>? queryParameters = null,
+        CancellationToken cancellationToken = default)
+    {
+        var parameters = queryParameters ?? new QueryParameters<TEntity>();
+        
+        try
+        {
+            // Start with the base query
+            IQueryable<TEntity> query = _dbSet;
+            
+            // Apply filter if provided
+            if (parameters.FilterExpression != null)
+            {
+                query = query.Where(parameters.FilterExpression);
+            }
+            
+            // Get total count before pagination for metadata
+            var totalCount = await query.CountAsync(cancellationToken);
+            
+            // Apply sorting
+            if (parameters.SortOptions.Any())
+            {
+                // We need to track if we've already applied the first sort
+                bool isFirstSort = true;
+                IOrderedQueryable<TEntity>? orderedQuery = null;
+                
+                foreach (var sortOption in parameters.SortOptions)
+                {
+                    // We need to get the property name and create a dynamic lambda
+                    var propertyName = GetPropertyNameFromExpression(sortOption.KeySelector);
+                    var parameter = Expression.Parameter(typeof(TEntity), "x");
+                    var property = Expression.Property(parameter, propertyName);
+                    var lambda = Expression.Lambda(property, parameter);
+                    
+                    // Get the generic method to call (OrderBy vs ThenBy and Ascending vs Descending)
+                    var methodName = isFirstSort
+                        ? (sortOption.Direction == SortDirection.Ascending ? "OrderBy" : "OrderByDescending")
+                        : (sortOption.Direction == SortDirection.Ascending ? "ThenBy" : "ThenByDescending");
+                    
+                    // Get the property type
+                    var propertyType = typeof(TEntity).GetProperty(propertyName)!.PropertyType;
+                    
+                    // Create the generic OrderBy/ThenBy method
+                    var method = typeof(Queryable)
+                        .GetMethods()
+                        .First(m => m.Name == methodName && m.GetParameters().Length == 2)
+                        .MakeGenericMethod(typeof(TEntity), propertyType);
+                    
+                    // Apply the sorting
+                    if (isFirstSort)
+                    {
+                        orderedQuery = (IOrderedQueryable<TEntity>)method.Invoke(null, [query, lambda])!;
+                        isFirstSort = false;
+                    }
+                    else
+                    {
+                        orderedQuery = (IOrderedQueryable<TEntity>)method.Invoke(null, [orderedQuery, lambda])!;
+                    }
+                }
+                
+                // Use the ordered query if we applied sorting
+                if (orderedQuery != null)
+                {
+                    query = orderedQuery;
+                }
+            }
+            
+            // Apply pagination
+            query = query
+                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+                .Take(parameters.PageSize);
+            
+            // Execute query
+            var items = await query.ToListAsync(cancellationToken);
+            
+            return new PagedResult<TEntity>(
+                items,
+                parameters.PageNumber,
+                parameters.PageSize,
+                totalCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error querying entities of type {EntityType}", typeof(TEntity).Name);
+            return new PagedResult<TEntity>(
+                Enumerable.Empty<TEntity>(), 
+                parameters.PageNumber, 
+                parameters.PageSize, 
+                0);
+        }
+    }
+    
+    /// <summary>
+    /// Gets the property name from a lambda expression.
+    /// </summary>
+    /// <param name="expression">The lambda expression.</param>
+    /// <returns>The property name.</returns>
+    private string GetPropertyNameFromExpression(LambdaExpression expression)
+    {
+        if (expression.Body is MemberExpression memberExpression)
+        {
+            return memberExpression.Member.Name;
+        }
+        
+        throw new ArgumentException("Expression must be a member access expression");
     }
 }
