@@ -7,18 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace FluentCMS.Repositories.EntityFramework;
 
-/// <summary>
-/// Base DbContext for FluentCMS Entity Framework repositories.
-/// </summary>
 public class FluentCmsDbContext : DbContext
 {
     private readonly EntityFrameworkOptions _options;
 
-    /// <summary>
-    /// Initializes a new instance of the FluentCmsDbContext class.
-    /// </summary>
-    /// <param name="options">The DbContext options.</param>
-    /// <param name="efOptions">The Entity Framework configuration options.</param>
     public FluentCmsDbContext(
         DbContextOptions options,
         IOptions<EntityFrameworkOptions> efOptions)
@@ -27,10 +19,6 @@ public class FluentCmsDbContext : DbContext
         _options = efOptions?.Value ?? throw new ArgumentNullException(nameof(efOptions));
     }
 
-    /// <summary>
-    /// Configures the model for all entities in the context.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -42,10 +30,6 @@ public class FluentCmsDbContext : DbContext
         ApplyNamingConventions(modelBuilder);
     }
 
-    /// <summary>
-    /// Configures entity types that implement IBaseEntity.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected virtual void ConfigureEntityTypes(ModelBuilder modelBuilder)
     {
         // Get all entity types from model
@@ -80,10 +64,6 @@ public class FluentCmsDbContext : DbContext
         }
     }
 
-    /// <summary>
-    /// Applies naming conventions to entities based on configuration options.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected virtual void ApplyNamingConventions(ModelBuilder modelBuilder)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -106,11 +86,6 @@ public class FluentCmsDbContext : DbContext
         }
     }
 
-    /// <summary>
-    /// Gets the table name for an entity based on configuration options.
-    /// </summary>
-    /// <param name="entityName">The entity name.</param>
-    /// <returns>The table name.</returns>
     protected virtual string GetTableName(string entityName)
     {
         string tableName = entityName;
@@ -141,11 +116,6 @@ public class FluentCmsDbContext : DbContext
         return tableName;
     }
 
-    /// <summary>
-    /// Simple pluralization for table names.
-    /// </summary>
-    /// <param name="word">The word to pluralize.</param>
-    /// <returns>The pluralized word.</returns>
     private static string Pluralize(string word)
     {
         // Handle simple plurals
@@ -164,11 +134,6 @@ public class FluentCmsDbContext : DbContext
         }
     }
 
-    /// <summary>
-    /// Checks if a character is a vowel.
-    /// </summary>
-    /// <param name="c">The character to check.</param>
-    /// <returns>True if the character is a vowel, otherwise false.</returns>
     private static bool IsVowel(char c)
     {
         return "aeiou".Contains(char.ToLowerInvariant(c));

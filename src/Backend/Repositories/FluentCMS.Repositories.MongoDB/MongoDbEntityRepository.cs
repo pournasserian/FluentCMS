@@ -12,10 +12,6 @@ using System.Linq.Expressions;
 
 namespace FluentCMS.Repositories.MongoDB;
 
-/// <summary>
-/// Repository implementation for MongoDB database provider.
-/// </summary>
-/// <typeparam name="TEntity">The entity type, which must implement IBaseEntity.</typeparam>
 public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> where TEntity : IBaseEntity
 {
     private readonly IMongoCollection<TEntity> _collection;
@@ -38,11 +34,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Initializes a new instance of the MongoDbEntityRepository class.
-    /// </summary>
-    /// <param name="options">The MongoDB configuration options.</param>
-    /// <param name="logger">The logger instance.</param>
     public MongoDbEntityRepository(
         IOptions<MongoDbOptions> options,
         ILogger<MongoDbEntityRepository<TEntity>> logger)
@@ -78,12 +69,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Gets the collection name based on configuration options.
-    /// </summary>
-    /// <param name="entityName">The entity name.</param>
-    /// <param name="options">The MongoDB options.</param>
-    /// <returns>The collection name.</returns>
     private static string GetCollectionName(string entityName, MongoDbOptions options)
     {
         string collectionName = entityName;
@@ -108,12 +93,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         return collectionName;
     }
 
-    /// <summary>
-    /// Creates a new entity in the database.
-    /// </summary>
-    /// <param name="entity">The entity to create.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created entity, or null if creation failed.</returns>
     public async Task<TEntity?> Create(TEntity entity, CancellationToken cancellationToken = default)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -144,12 +123,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Creates multiple entities in the database.
-    /// </summary>
-    /// <param name="entities">The entities to create.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created entities.</returns>
     public async Task<IEnumerable<TEntity>> CreateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entities);
@@ -187,12 +160,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Updates an existing entity in the database.
-    /// </summary>
-    /// <param name="entity">The entity to update.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated entity, or null if the update failed.</returns>
     public async Task<TEntity?> Update(TEntity entity, CancellationToken cancellationToken = default)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -225,12 +192,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Updates multiple entities in the database.
-    /// </summary>
-    /// <param name="entities">The entities to update.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated entities.</returns>
     public async Task<IEnumerable<TEntity>> UpdateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entities);
@@ -280,12 +241,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Deletes an entity from the database by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity to delete.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The deleted entity, or null if no entity was found.</returns>
     public async Task<TEntity?> Delete(Guid id, CancellationToken cancellationToken = default)
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
@@ -314,12 +269,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Deletes multiple entities from the database by their IDs.
-    /// </summary>
-    /// <param name="ids">The IDs of the entities to delete.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The deleted entities.</returns>
     public async Task<IEnumerable<TEntity>> DeleteMany(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(ids);
@@ -350,11 +299,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Gets all entities from the database.
-    /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>All entities.</returns>
     public async Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default)
     {
         try
@@ -370,12 +314,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Gets an entity by its ID.
-    /// </summary>
-    /// <param name="id">The ID of the entity to get.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The entity, or null if no entity was found.</returns>
     public async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         if (id == Guid.Empty) throw new ArgumentException("ID cannot be empty.", nameof(id));
@@ -393,12 +331,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Gets multiple entities by their IDs.
-    /// </summary>
-    /// <param name="ids">The IDs of the entities to get.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The entities found.</returns>
     public async Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(ids);
@@ -419,12 +351,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Executes a MongoDB Find operation with the specified filter.
-    /// </summary>
-    /// <param name="filter">The filter expression.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The entities matching the filter.</returns>
     public async Task<IEnumerable<TEntity>> FindAsync(
         Expression<Func<TEntity, bool>> filter,
         CancellationToken cancellationToken = default)
@@ -441,12 +367,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    /// <summary>
-    /// Retrieves a paged list of entities based on the provided query parameters.
-    /// </summary>
-    /// <param name="queryParameters">The query parameters including filtering, sorting, and pagination options.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A paged result containing the requested entities and pagination metadata.</returns>
     public async Task<PagedResult<TEntity>> QueryAsync(
         QueryParameters<TEntity>? queryParameters = null,
         CancellationToken cancellationToken = default)
@@ -503,11 +423,6 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
     
-    /// <summary>
-    /// Extracts the property name from an expression.
-    /// </summary>
-    /// <param name="expression">The lambda expression.</param>
-    /// <returns>The property name.</returns>
     private string GetSortPropertyName(LambdaExpression expression)
     {
         if (expression.Body is MemberExpression memberExpression)
