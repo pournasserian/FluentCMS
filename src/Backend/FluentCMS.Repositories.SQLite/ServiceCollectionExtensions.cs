@@ -18,9 +18,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configure">An action to configure the SQLite options.</param>
     /// <returns>The service collection.</returns>
-    public static IServiceCollection AddSqliteRepositories(
-        this IServiceCollection services,
-        Action<SqliteOptions> configure)
+    public static IServiceCollection AddSqliteRepositories(this IServiceCollection services, Action<SqliteOptions> configure)
     {
         // Configure options
         services.Configure(configure);
@@ -30,10 +28,10 @@ public static class ServiceCollectionExtensions
         {
             var sqliteOptions = new SqliteOptions();
             configure(sqliteOptions);
-            
+
             // Configure connection string
             var connectionString = BuildConnectionString(sqliteOptions);
-            
+
             // Configure SQLite
             options.UseSqlite(connectionString, sqliteOptionsBuilder =>
             {
@@ -57,10 +55,7 @@ public static class ServiceCollectionExtensions
     /// <param name="databasePath">The path to the SQLite database file.</param>
     /// <param name="configure">An optional action to configure additional SQLite options.</param>
     /// <returns>The service collection.</returns>
-    public static IServiceCollection AddSqliteRepositories(
-        this IServiceCollection services,
-        string databasePath,
-        Action<SqliteOptions>? configure = null)
+    public static IServiceCollection AddSqliteRepositories(this IServiceCollection services, string databasePath, Action<SqliteOptions>? configure = null)
     {
         return services.AddSqliteRepositories(options =>
         {
@@ -76,10 +71,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">The configuration section containing SQLite settings.</param>
     /// <param name="sectionName">The name of the configuration section to use. Defaults to "SQLite".</param>
     /// <returns>The service collection.</returns>
-    public static IServiceCollection AddSqliteRepositories(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string sectionName = "SQLite")
+    public static IServiceCollection AddSqliteRepositories(this IServiceCollection services, IConfiguration configuration, string sectionName = "SQLite")
     {
         // Get configuration section
         var section = configuration.GetSection(sectionName);
@@ -88,54 +80,54 @@ public static class ServiceCollectionExtensions
         {
             // Read SQLite-specific options
             options.DatabasePath = section["DatabasePath"] ?? options.DatabasePath;
-            
+
             bool enableForeignKeys;
             if (bool.TryParse(section["EnableForeignKeys"], out enableForeignKeys))
             {
                 options.EnableForeignKeys = enableForeignKeys;
             }
-            
+
             bool useWal;
             if (bool.TryParse(section["UseWal"], out useWal))
             {
                 options.UseWal = useWal;
             }
-            
+
             int cacheSize;
             if (int.TryParse(section["CacheSize"], out cacheSize))
             {
                 options.CacheSize = cacheSize;
             }
-            
+
             bool useConnectionPooling;
             if (bool.TryParse(section["UseConnectionPooling"], out useConnectionPooling))
             {
                 options.UseConnectionPooling = useConnectionPooling;
             }
-            
+
             int connectionTimeout;
             if (int.TryParse(section["ConnectionTimeout"], out connectionTimeout))
             {
                 options.ConnectionTimeout = connectionTimeout;
             }
-            
+
             // Read base options
             bool useCamelCaseTableNames;
             if (bool.TryParse(section["UseCamelCaseTableNames"], out useCamelCaseTableNames))
             {
                 options.UseCamelCaseTableNames = useCamelCaseTableNames;
             }
-            
+
             options.TableNamePrefix = section["TableNamePrefix"];
             options.TableNameSuffix = section["TableNameSuffix"];
             options.DefaultSchema = section["DefaultSchema"];
-            
+
             bool autoMigrateDatabase;
             if (bool.TryParse(section["AutoMigrateDatabase"], out autoMigrateDatabase))
             {
                 options.AutoMigrateDatabase = autoMigrateDatabase;
             }
-            
+
             bool usePluralTableNames;
             if (bool.TryParse(section["UsePluralTableNames"], out usePluralTableNames))
             {
@@ -168,21 +160,21 @@ public static class ServiceCollectionExtensions
         {
             DataSource = options.DatabasePath,
             Mode = Microsoft.Data.Sqlite.SqliteOpenMode.ReadWriteCreate,
-            Cache = options.UseConnectionPooling 
-                ? Microsoft.Data.Sqlite.SqliteCacheMode.Shared 
+            Cache = options.UseConnectionPooling
+                ? Microsoft.Data.Sqlite.SqliteCacheMode.Shared
                 : Microsoft.Data.Sqlite.SqliteCacheMode.Private,
             ForeignKeys = options.EnableForeignKeys
         };
 
         // Build the connection string
         var connectionString = connectionStringBuilder.ToString();
-        
+
         // Add WAL mode if enabled
         if (options.UseWal)
         {
             connectionString += ";Journal Mode=WAL";
         }
-        
+
         // Add cache size
         connectionString += $";Cache Size={options.CacheSize}";
 
