@@ -7,17 +7,8 @@ using System.IO;
 
 namespace FluentCMS.Repositories.SQLite;
 
-/// <summary>
-/// Extension methods for configuring SQLite repositories with dependency injection.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds SQLite repository services to the service collection.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">An action to configure the SQLite options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSqliteRepositories(this IServiceCollection services, Action<SqliteOptions> configure)
     {
         // Configure options
@@ -48,13 +39,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Adds SQLite repository services to the service collection using a database path.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="databasePath">The path to the SQLite database file.</param>
-    /// <param name="configure">An optional action to configure additional SQLite options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSqliteRepositories(this IServiceCollection services, string databasePath, Action<SqliteOptions>? configure = null)
     {
         return services.AddSqliteRepositories(options =>
@@ -64,13 +48,6 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    /// <summary>
-    /// Adds SQLite repository services to the service collection using configuration.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration section containing SQLite settings.</param>
-    /// <param name="sectionName">The name of the configuration section to use. Defaults to "SQLite".</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSqliteRepositories(this IServiceCollection services, IConfiguration configuration, string sectionName = "SQLite")
     {
         // Get configuration section
@@ -136,11 +113,6 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    /// <summary>
-    /// Builds a SQLite connection string from options.
-    /// </summary>
-    /// <param name="options">The SQLite options.</param>
-    /// <returns>A SQLite connection string.</returns>
     private static string BuildConnectionString(SqliteOptions options)
     {
         if (string.IsNullOrEmpty(options.DatabasePath))

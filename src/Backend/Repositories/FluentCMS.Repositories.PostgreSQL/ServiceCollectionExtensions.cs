@@ -6,17 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.PostgreSQL;
 
-/// <summary>
-/// Extension methods for configuring PostgreSQL repositories with dependency injection.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds PostgreSQL repository services to the service collection.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">An action to configure the PostgreSQL options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddPostgreSqlRepositories(this IServiceCollection services, Action<PostgreSqlOptions> configure)
     {
         // Configure options
@@ -65,13 +56,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Adds PostgreSQL repository services to the service collection using a connection string.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="connectionString">The PostgreSQL connection string.</param>
-    /// <param name="configure">An optional action to configure additional PostgreSQL options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddPostgreSqlRepositories(this IServiceCollection services, string connectionString, Action<PostgreSqlOptions>? configure = null)
     {
         return services.AddPostgreSqlRepositories(options =>
@@ -81,13 +65,6 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    /// <summary>
-    /// Adds PostgreSQL repository services to the service collection using configuration.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration section containing PostgreSQL settings.</param>
-    /// <param name="sectionName">The name of the configuration section to use. Defaults to "PostgreSQL".</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddPostgreSqlRepositories(this IServiceCollection services, IConfiguration configuration, string sectionName = "PostgreSQL")
     {
         // Get configuration section

@@ -149,7 +149,6 @@
 1. **Code Style**
    - Follow C# coding conventions
    - Use nullable reference types
-   - Maintain consistent XML documentation
 
 2. **Testing**
    - Unit tests for all core functionality
@@ -162,6 +161,5 @@
    - Pull requests for code reviews
 
 4. **Documentation**
-   - XML documentation for all public members
    - README files for project overview
    - Detailed API documentation

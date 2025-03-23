@@ -7,17 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.SqlServer;
 
-/// <summary>
-/// Extension methods for configuring SQL Server repositories with dependency injection.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds SQL Server repository services to the service collection.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">An action to configure the SQL Server options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSqlServerRepositories(this IServiceCollection services, Action<SqlServerOptions> configure)
     {
         // Configure options
@@ -84,13 +75,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Adds SQL Server repository services to the service collection using a connection string.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="connectionString">The SQL Server connection string.</param>
-    /// <param name="configure">An optional action to configure additional SQL Server options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSqlServerRepositories(this IServiceCollection services, string connectionString, Action<SqlServerOptions>? configure = null)
     {
         return services.AddSqlServerRepositories(options =>
@@ -100,13 +84,6 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    /// <summary>
-    /// Adds SQL Server repository services to the service collection using configuration.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration section containing SQL Server settings.</param>
-    /// <param name="sectionName">The name of the configuration section to use. Defaults to "SqlServer".</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddSqlServerRepositories(this IServiceCollection services, IConfiguration configuration, string sectionName = "SqlServer")
     {
         // Get configuration section

@@ -4,18 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.Factory;
 
-/// <summary>
-/// Extension methods for setting up the repository factory in an <see cref="IServiceCollection" />.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds the repository factory to the specified <see cref="IServiceCollection" />.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-    /// <param name="configuration">The configuration being bound.</param>
-    /// <param name="sectionName">The configuration section name. Default is "Repository".</param>
-    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRepositoryFactory(
         this IServiceCollection services, 
         IConfiguration configuration, 
@@ -60,12 +50,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Adds the repository factory to the specified <see cref="IServiceCollection" />.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-    /// <param name="configure">The action used to configure the options.</param>
-    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRepositoryFactory(
         this IServiceCollection services,
         Action<RepositoryFactoryOptions> configure)
@@ -87,11 +71,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Configures the selected provider based on the options.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="options">The repository factory options.</param>
     private static void ConfigureSelectedProvider(IServiceCollection services, RepositoryFactoryOptions options)
     {
         // Create all provider configurators

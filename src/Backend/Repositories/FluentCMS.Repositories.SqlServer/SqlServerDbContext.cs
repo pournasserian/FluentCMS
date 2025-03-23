@@ -4,18 +4,10 @@ using Microsoft.Extensions.Options;
 
 namespace FluentCMS.Repositories.SqlServer;
 
-/// <summary>
-/// SQL Server implementation of the FluentCMS DbContext.
-/// </summary>
 public class SqlServerDbContext : FluentCmsDbContext
 {
     private readonly SqlServerOptions _sqlServerOptions;
 
-    /// <summary>
-    /// Initializes a new instance of the SqlServerDbContext class.
-    /// </summary>
-    /// <param name="options">The DbContext options.</param>
-    /// <param name="sqlServerOptions">The SQL Server configuration options.</param>
     public SqlServerDbContext(
         DbContextOptions<SqlServerDbContext> options,
         IOptions<SqlServerOptions> sqlServerOptions)
@@ -24,10 +16,6 @@ public class SqlServerDbContext : FluentCmsDbContext
         _sqlServerOptions = sqlServerOptions?.Value ?? throw new ArgumentNullException(nameof(sqlServerOptions));
     }
 
-    /// <summary>
-    /// Configures SQL Server-specific options when the context is being configured.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -39,10 +27,6 @@ public class SqlServerDbContext : FluentCmsDbContext
         base.OnConfiguring(optionsBuilder);
     }
 
-    /// <summary>
-    /// Configures SQL Server-specific model creation options.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply SQL Server-specific configurations
@@ -59,10 +43,6 @@ public class SqlServerDbContext : FluentCmsDbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    /// <summary>
-    /// Applies SQL Server-specific configuration to the DbContext options.
-    /// </summary>
-    /// <param name="optionsBuilder">The options builder.</param>
     private void ConfigureSqlServer(DbContextOptionsBuilder optionsBuilder)
     {
         if (string.IsNullOrEmpty(_sqlServerOptions.ConnectionString))

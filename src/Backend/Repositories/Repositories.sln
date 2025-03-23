@@ -1,0 +1,72 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.Abstractions", "FluentCMS.Repositories.Abstractions\FluentCMS.Repositories.Abstractions.csproj", "{A941A89E-2595-071B-1D77-CA579CED16B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.EntityFramework", "FluentCMS.Repositories.EntityFramework\FluentCMS.Repositories.EntityFramework.csproj", "{283182BF-5A64-2AE6-9887-269483576932}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.Factory", "FluentCMS.Repositories.Factory\FluentCMS.Repositories.Factory.csproj", "{850F395C-4E62-1E10-8692-9D89ACAB9121}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.LiteDB", "FluentCMS.Repositories.LiteDB\FluentCMS.Repositories.LiteDB.csproj", "{12BB3E9C-0707-3938-666C-37C224765C5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.MongoDB", "FluentCMS.Repositories.MongoDB\FluentCMS.Repositories.MongoDB.csproj", "{D80B07B0-ABB7-5CB0-7ABB-E3CE527EE6A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.MySQL", "FluentCMS.Repositories.MySQL\FluentCMS.Repositories.MySQL.csproj", "{3BBD02DF-D2DD-3ED3-AC6F-9D5DEBB7A1A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.PostgreSQL", "FluentCMS.Repositories.PostgreSQL\FluentCMS.Repositories.PostgreSQL.csproj", "{E58307F5-78B4-D62C-7594-908F2A4D76F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.SQLite", "FluentCMS.Repositories.SQLite\FluentCMS.Repositories.SQLite.csproj", "{593BC4B4-7063-E3FC-44E7-1D0D8008DA3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCMS.Repositories.SqlServer", "FluentCMS.Repositories.SqlServer\FluentCMS.Repositories.SqlServer.csproj", "{54947CA0-C390-33C3-4C13-832CFE750B0D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A941A89E-2595-071B-1D77-CA579CED16B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A941A89E-2595-071B-1D77-CA579CED16B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A941A89E-2595-071B-1D77-CA579CED16B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A941A89E-2595-071B-1D77-CA579CED16B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{283182BF-5A64-2AE6-9887-269483576932}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{283182BF-5A64-2AE6-9887-269483576932}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{283182BF-5A64-2AE6-9887-269483576932}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{283182BF-5A64-2AE6-9887-269483576932}.Release|Any CPU.Build.0 = Release|Any CPU
+		{850F395C-4E62-1E10-8692-9D89ACAB9121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{850F395C-4E62-1E10-8692-9D89ACAB9121}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{850F395C-4E62-1E10-8692-9D89ACAB9121}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{850F395C-4E62-1E10-8692-9D89ACAB9121}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12BB3E9C-0707-3938-666C-37C224765C5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12BB3E9C-0707-3938-666C-37C224765C5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12BB3E9C-0707-3938-666C-37C224765C5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12BB3E9C-0707-3938-666C-37C224765C5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D80B07B0-ABB7-5CB0-7ABB-E3CE527EE6A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D80B07B0-ABB7-5CB0-7ABB-E3CE527EE6A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D80B07B0-ABB7-5CB0-7ABB-E3CE527EE6A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D80B07B0-ABB7-5CB0-7ABB-E3CE527EE6A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BBD02DF-D2DD-3ED3-AC6F-9D5DEBB7A1A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BBD02DF-D2DD-3ED3-AC6F-9D5DEBB7A1A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BBD02DF-D2DD-3ED3-AC6F-9D5DEBB7A1A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BBD02DF-D2DD-3ED3-AC6F-9D5DEBB7A1A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E58307F5-78B4-D62C-7594-908F2A4D76F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E58307F5-78B4-D62C-7594-908F2A4D76F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E58307F5-78B4-D62C-7594-908F2A4D76F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E58307F5-78B4-D62C-7594-908F2A4D76F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{593BC4B4-7063-E3FC-44E7-1D0D8008DA3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{593BC4B4-7063-E3FC-44E7-1D0D8008DA3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{593BC4B4-7063-E3FC-44E7-1D0D8008DA3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{593BC4B4-7063-E3FC-44E7-1D0D8008DA3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54947CA0-C390-33C3-4C13-832CFE750B0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54947CA0-C390-33C3-4C13-832CFE750B0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54947CA0-C390-33C3-4C13-832CFE750B0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54947CA0-C390-33C3-4C13-832CFE750B0D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AF4D8E34-A210-4B22-AD7C-094DAF94360D}
+	EndGlobalSection
+EndGlobal

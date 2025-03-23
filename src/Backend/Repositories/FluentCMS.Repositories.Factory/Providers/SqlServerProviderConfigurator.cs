@@ -6,16 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.Factory.Providers;
 
-/// <summary>
-/// Configurator for SQL Server provider.
-/// </summary>
 public class SqlServerProviderConfigurator : IProviderConfigurator
 {
-    /// <summary>
-    /// Determines if this configurator can handle the specified provider.
-    /// </summary>
-    /// <param name="providerName">The provider name.</param>
-    /// <returns>True if the provider is SqlServer; otherwise, false.</returns>
     public bool CanHandleProvider(string providerName)
     {
         return string.Equals(providerName, "SqlServer", StringComparison.OrdinalIgnoreCase) ||
@@ -23,11 +15,6 @@ public class SqlServerProviderConfigurator : IProviderConfigurator
                string.Equals(providerName, "MSSQL", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Configures SQL Server repository services.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="options">The repository factory options.</param>
     public void ConfigureServices(IServiceCollection services, RepositoryFactoryOptions options)
     {
         // Validate configuration before proceeding
@@ -76,11 +63,6 @@ public class SqlServerProviderConfigurator : IProviderConfigurator
         });
     }
 
-    /// <summary>
-    /// Validates the SQL Server configuration.
-    /// </summary>
-    /// <param name="options">The repository factory options.</param>
-    /// <exception cref="ArgumentException">Thrown when SQL Server configuration is invalid.</exception>
     public void ValidateConfiguration(RepositoryFactoryOptions options)
     {
         // Check if connection string is provided

@@ -7,17 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentCMS.Repositories.MySQL;
 
-/// <summary>
-/// Extension methods for configuring MySQL repositories with dependency injection.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds MySQL repository services to the service collection.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">An action to configure the MySQL options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddMySqlRepositories(this IServiceCollection services, Action<MySqlOptions> configure)
     {
         // Configure options
@@ -62,14 +53,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Adds MySQL repository services to the service collection using a connection string.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="connectionString">The MySQL connection string.</param>
-    /// <param name="serverVersion">Optional MySQL server version string (e.g., "8.0.28").</param>
-    /// <param name="configure">An optional action to configure additional MySQL options.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddMySqlRepositories(this IServiceCollection services, 
         string connectionString, 
         string? serverVersion = null, 
@@ -88,13 +71,6 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    /// <summary>
-    /// Adds MySQL repository services to the service collection using configuration.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration section containing MySQL settings.</param>
-    /// <param name="sectionName">The name of the configuration section to use. Defaults to "MySQL".</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddMySqlRepositories(this IServiceCollection services, 
         IConfiguration configuration, 
         string sectionName = "MySQL")
