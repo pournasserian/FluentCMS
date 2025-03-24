@@ -8,10 +8,7 @@ public class SqliteDbContext : FluentCmsDbContext
 {
     private readonly SqliteOptions _sqliteOptions;
 
-    public SqliteDbContext(
-        DbContextOptions<SqliteDbContext> options,
-        IOptions<SqliteOptions> sqliteOptions)
-        : base(options, sqliteOptions)
+    public SqliteDbContext(DbContextOptions<SqliteDbContext> options, IOptions<SqliteOptions> sqliteOptions) : base(options, sqliteOptions)
     {
         _sqliteOptions = sqliteOptions?.Value ?? throw new ArgumentNullException(nameof(sqliteOptions));
     }
@@ -72,13 +69,13 @@ public class SqliteDbContext : FluentCmsDbContext
 
         // Add additional pragmas as query string parameters
         var connectionString = connectionStringBuilder.ToString();
-        
+
         // Add WAL mode if enabled
         if (_sqliteOptions.UseWal)
         {
             connectionString += ";Journal Mode=WAL";
         }
-        
+
         // Add cache size
         connectionString += $";Cache Size={_sqliteOptions.CacheSize}";
 

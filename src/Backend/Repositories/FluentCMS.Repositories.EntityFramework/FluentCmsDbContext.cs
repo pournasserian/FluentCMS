@@ -1,9 +1,6 @@
 using FluentCMS.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Options;
-using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace FluentCMS.Repositories.EntityFramework;
 
@@ -11,10 +8,7 @@ public class FluentCmsDbContext : DbContext
 {
     private readonly EntityFrameworkOptions _options;
 
-    public FluentCmsDbContext(
-        DbContextOptions options,
-        IOptions<EntityFrameworkOptions> efOptions)
-        : base(options)
+    public FluentCmsDbContext(DbContextOptions options, IOptions<EntityFrameworkOptions> efOptions) : base(options)
     {
         _options = efOptions?.Value ?? throw new ArgumentNullException(nameof(efOptions));
     }
@@ -25,7 +19,7 @@ public class FluentCmsDbContext : DbContext
 
         // Apply entity configurations
         ConfigureEntityTypes(modelBuilder);
-        
+
         // Apply naming conventions
         ApplyNamingConventions(modelBuilder);
     }
@@ -74,7 +68,7 @@ public class FluentCmsDbContext : DbContext
 
             // Apply transformations based on options
             tableName = GetTableName(entityType.ClrType.Name);
-            
+
             // Set the table name
             entityType.SetTableName(tableName);
 
@@ -119,7 +113,7 @@ public class FluentCmsDbContext : DbContext
     private static string Pluralize(string word)
     {
         // Handle simple plurals
-        if (word.EndsWith("s") || word.EndsWith("x") || word.EndsWith("z") || 
+        if (word.EndsWith("s") || word.EndsWith("x") || word.EndsWith("z") ||
             word.EndsWith("ch") || word.EndsWith("sh"))
         {
             return word + "es";

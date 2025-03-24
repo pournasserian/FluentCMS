@@ -8,10 +8,7 @@ public class SqlServerDbContext : FluentCmsDbContext
 {
     private readonly SqlServerOptions _sqlServerOptions;
 
-    public SqlServerDbContext(
-        DbContextOptions<SqlServerDbContext> options,
-        IOptions<SqlServerOptions> sqlServerOptions)
-        : base(options, sqlServerOptions)
+    public SqlServerDbContext(DbContextOptions<SqlServerDbContext> options, IOptions<SqlServerOptions> sqlServerOptions) : base(options, sqlServerOptions)
     {
         _sqlServerOptions = sqlServerOptions?.Value ?? throw new ArgumentNullException(nameof(sqlServerOptions));
     }
@@ -31,7 +28,7 @@ public class SqlServerDbContext : FluentCmsDbContext
     {
         // Apply SQL Server-specific configurations
         // For example, configuring specific SQL Server data types, constraints, etc.
-        
+
         // Example: Configure default string length for all string properties
         foreach (var property in modelBuilder.Model.GetEntityTypes()
             .SelectMany(t => t.GetProperties())

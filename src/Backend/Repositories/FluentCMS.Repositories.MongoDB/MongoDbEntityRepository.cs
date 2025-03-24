@@ -34,9 +34,7 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    public MongoDbEntityRepository(
-        IOptions<MongoDbOptions> options,
-        ILogger<MongoDbEntityRepository<TEntity>> logger)
+    public MongoDbEntityRepository(IOptions<MongoDbOptions> options, ILogger<MongoDbEntityRepository<TEntity>> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(options.Value);
@@ -351,65 +349,47 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
         }
     }
 
-    public async Task<IEnumerable<TEntity>> FindAsync(
-        Expression<Func<TEntity, bool>> filter,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            return await _collection.Find(filter).ToListAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error finding entities of type {EntityType} with filter",
-                typeof(TEntity).Name);
-            return [];
-        }
-    }
-
-    public async Task<PagedResult<TEntity>> QueryAsync(
-        QueryParameters<TEntity>? queryParameters = null,
-        CancellationToken cancellationToken = default)
+    public async Task<PagedResult<TEntity>> Query(QueryParameters<TEntity>? queryParameters = null, CancellationToken cancellationToken = default)
     {
         var parameters = queryParameters ?? new QueryParameters<TEntity>();
-        
+
         try
         {
             // Build filter
-            var filter = parameters.FilterExpression != null 
+            var filter = parameters.FilterExpression != null
                 ? Builders<TEntity>.Filter.Where(parameters.FilterExpression)
                 : Builders<TEntity>.Filter.Empty;
-                
+
             // Get total count
             var totalCount = await _collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
-            
+
             // Build query
             var query = _collection.Find(filter);
-            
+
             // Apply sorting
             if (parameters.SortOptions.Any())
             {
                 var sortDefinitions = new List<SortDefinition<TEntity>>();
-                
+
                 foreach (var sortOption in parameters.SortOptions)
                 {
                     if (sortOption.Direction == FluentCMS.Repositories.Abstractions.Querying.SortDirection.Ascending)
-                        sortDefinitions.Add(Builders<TEntity>.Sort.Ascending(GetSortPropertyName(sortOption.KeySelector)));
+                        sortDefinitions.Add(Builders<TEntity>.Sort.Ascending(MongoDbEntityRepository<TEntity>.GetSortPropertyName(sortOption.KeySelector)));
                     else
-                        sortDefinitions.Add(Builders<TEntity>.Sort.Descending(GetSortPropertyName(sortOption.KeySelector)));
+                        sortDefinitions.Add(Builders<TEntity>.Sort.Descending(MongoDbEntityRepository<TEntity>.GetSortPropertyName(sortOption.KeySelector)));
                 }
-                
+
                 if (sortDefinitions.Any())
                     query = query.Sort(Builders<TEntity>.Sort.Combine(sortDefinitions));
             }
-            
+
             // Apply pagination
             var skip = (parameters.PageNumber - 1) * parameters.PageSize;
             query = query.Skip(skip).Limit(parameters.PageSize);
-            
+
             // Execute query
             var items = await query.ToListAsync(cancellationToken);
-            
+
             return new PagedResult<TEntity>(
                 items,
                 parameters.PageNumber,
@@ -422,14 +402,14 @@ public class MongoDbEntityRepository<TEntity> : IBaseEntityRepository<TEntity> w
             return new PagedResult<TEntity>(Enumerable.Empty<TEntity>(), parameters.PageNumber, parameters.PageSize, 0);
         }
     }
-    
-    private string GetSortPropertyName(LambdaExpression expression)
+
+    private static string GetSortPropertyName(LambdaExpression expression)
     {
         if (expression.Body is MemberExpression memberExpression)
         {
             return memberExpression.Member.Name;
         }
-        
+
         throw new ArgumentException("Expression must be a member access expression");
     }
 }

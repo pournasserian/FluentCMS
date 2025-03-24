@@ -1,9 +1,9 @@
 using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
 using FluentCMS.Repositories.Abstractions.Querying;
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace FluentCMS.Repositories.EntityFramework;
 
@@ -13,9 +13,7 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
     protected readonly DbSet<TEntity> _dbSet;
     protected readonly ILogger<EntityFrameworkEntityRepository<TEntity>> _logger;
 
-    public EntityFrameworkEntityRepository(
-        FluentCmsDbContext dbContext,
-        ILogger<EntityFrameworkEntityRepository<TEntity>> logger)
+    public EntityFrameworkEntityRepository(FluentCmsDbContext dbContext, ILogger<EntityFrameworkEntityRepository<TEntity>> logger)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _dbSet = dbContext.Set<TEntity>();
@@ -42,7 +40,7 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
 
             // Add the entity to the context
             await _dbSet.AddAsync(entity, cancellationToken);
-            
+
             // Save changes to the database
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -81,7 +79,7 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
 
             // Add all entities to the context
             await _dbSet.AddRangeAsync(entityList, cancellationToken);
-            
+
             // Save changes to the database
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -109,7 +107,7 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
             if (entity is IAuditableEntity auditableEntity)
             {
                 auditableEntity.LastModifiedDate = DateTime.UtcNow;
-                
+
                 // Preserve creation audit data if the existing entity has it
                 if (existingEntity is IAuditableEntity existingAuditableEntity)
                 {
@@ -120,10 +118,10 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
 
             // Detach the existing entity from the context
             _dbContext.Entry(existingEntity).State = EntityState.Detached;
-            
+
             // Update the entity
             _dbContext.Entry(entity).State = EntityState.Modified;
-            
+
             // Save changes to the database
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -154,7 +152,7 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         {
             // Get IDs of all entities to update
             var ids = entityList.Select(e => e.Id).ToList();
-            
+
             // Get existing entities in a single query for efficiency
             var existingEntities = await _dbSet
                 .Where(e => ids.Contains(e.Id))
@@ -173,7 +171,7 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
                 if (entity is IAuditableEntity auditableEntity)
                 {
                     auditableEntity.LastModifiedDate = DateTime.UtcNow;
-                    
+
                     // Preserve creation audit data if the existing entity has it
                     if (existingEntity is IAuditableEntity existingAuditableEntity)
                     {
@@ -184,10 +182,10 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
 
                 // Detach the existing entity from the context
                 _dbContext.Entry(existingEntity).State = EntityState.Detached;
-                
+
                 // Update the entity
                 _dbContext.Entry(entity).State = EntityState.Modified;
-                
+
                 updatedEntities.Add(entity);
             }
 
@@ -219,7 +217,7 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
 
             // Remove the entity
             _dbSet.Remove(entity);
-            
+
             // Save changes to the database
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -246,12 +244,12 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
             var entities = await _dbSet
                 .Where(e => idsList.Contains(e.Id))
                 .ToListAsync(cancellationToken);
-                
+
             if (entities.Count == 0) return [];
 
             // Remove the entities
             _dbSet.RemoveRange(entities);
-            
+
             // Save changes to the database
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -316,55 +314,53 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         }
     }
 
-    public async Task<PagedResult<TEntity>> QueryAsync(
-        QueryParameters<TEntity>? queryParameters = null,
-        CancellationToken cancellationToken = default)
+    public async Task<PagedResult<TEntity>> Query(QueryParameters<TEntity>? queryParameters = null, CancellationToken cancellationToken = default)
     {
         var parameters = queryParameters ?? new QueryParameters<TEntity>();
-        
+
         try
         {
             // Start with the base query
             IQueryable<TEntity> query = _dbSet;
-            
+
             // Apply filter if provided
             if (parameters.FilterExpression != null)
             {
                 query = query.Where(parameters.FilterExpression);
             }
-            
+
             // Get total count before pagination for metadata
             var totalCount = await query.CountAsync(cancellationToken);
-            
+
             // Apply sorting
             if (parameters.SortOptions.Any())
             {
                 // We need to track if we've already applied the first sort
                 bool isFirstSort = true;
                 IOrderedQueryable<TEntity>? orderedQuery = null;
-                
+
                 foreach (var sortOption in parameters.SortOptions)
                 {
                     // We need to get the property name and create a dynamic lambda
-                    var propertyName = GetPropertyNameFromExpression(sortOption.KeySelector);
+                    var propertyName = EntityFrameworkEntityRepository<TEntity>.GetPropertyNameFromExpression(sortOption.KeySelector);
                     var parameter = Expression.Parameter(typeof(TEntity), "x");
                     var property = Expression.Property(parameter, propertyName);
                     var lambda = Expression.Lambda(property, parameter);
-                    
+
                     // Get the generic method to call (OrderBy vs ThenBy and Ascending vs Descending)
                     var methodName = isFirstSort
                         ? (sortOption.Direction == SortDirection.Ascending ? "OrderBy" : "OrderByDescending")
                         : (sortOption.Direction == SortDirection.Ascending ? "ThenBy" : "ThenByDescending");
-                    
+
                     // Get the property type
                     var propertyType = typeof(TEntity).GetProperty(propertyName)!.PropertyType;
-                    
+
                     // Create the generic OrderBy/ThenBy method
                     var method = typeof(Queryable)
                         .GetMethods()
                         .First(m => m.Name == methodName && m.GetParameters().Length == 2)
                         .MakeGenericMethod(typeof(TEntity), propertyType);
-                    
+
                     // Apply the sorting
                     if (isFirstSort)
                     {
@@ -376,22 +372,22 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
                         orderedQuery = (IOrderedQueryable<TEntity>)method.Invoke(null, [orderedQuery, lambda])!;
                     }
                 }
-                
+
                 // Use the ordered query if we applied sorting
                 if (orderedQuery != null)
                 {
                     query = orderedQuery;
                 }
             }
-            
+
             // Apply pagination
             query = query
                 .Skip((parameters.PageNumber - 1) * parameters.PageSize)
                 .Take(parameters.PageSize);
-            
+
             // Execute query
             var items = await query.ToListAsync(cancellationToken);
-            
+
             return new PagedResult<TEntity>(
                 items,
                 parameters.PageNumber,
@@ -402,20 +398,20 @@ public class EntityFrameworkEntityRepository<TEntity> : IBaseEntityRepository<TE
         {
             _logger.LogError(ex, "Error querying entities of type {EntityType}", typeof(TEntity).Name);
             return new PagedResult<TEntity>(
-                Enumerable.Empty<TEntity>(), 
-                parameters.PageNumber, 
-                parameters.PageSize, 
+                Enumerable.Empty<TEntity>(),
+                parameters.PageNumber,
+                parameters.PageSize,
                 0);
         }
     }
-    
-    private string GetPropertyNameFromExpression(LambdaExpression expression)
+
+    private static string GetPropertyNameFromExpression(LambdaExpression expression)
     {
         if (expression.Body is MemberExpression memberExpression)
         {
             return memberExpression.Member.Name;
         }
-        
+
         throw new ArgumentException("Expression must be a member access expression");
     }
 }

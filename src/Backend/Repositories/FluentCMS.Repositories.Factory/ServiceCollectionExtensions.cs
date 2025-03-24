@@ -6,34 +6,31 @@ namespace FluentCMS.Repositories.Factory;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddRepositoryFactory(
-        this IServiceCollection services, 
-        IConfiguration configuration, 
-        string sectionName = "Repository")
+    public static IServiceCollection AddRepositoryFactory(this IServiceCollection services, IConfiguration configuration, string sectionName = "Repository")
     {
         // Configure options from configuration
         services.Configure<RepositoryFactoryOptions>(configuration.GetSection(sectionName));
-        
+
         // Configure provider-specific options from configuration
-        services.Configure<FluentCMS.Repositories.MongoDB.MongoDbOptions>(
+        services.Configure<MongoDB.MongoDbOptions>(
             configuration.GetSection($"{sectionName}:MongoDB"));
-        
-        services.Configure<FluentCMS.Repositories.LiteDB.LiteDbOptions>(
+
+        services.Configure<LiteDB.LiteDbOptions>(
             configuration.GetSection($"{sectionName}:LiteDB"));
-        
-        services.Configure<FluentCMS.Repositories.EntityFramework.EntityFrameworkOptions>(
+
+        services.Configure<EntityFramework.EntityFrameworkOptions>(
             configuration.GetSection($"{sectionName}:EntityFramework"));
-        
-        services.Configure<FluentCMS.Repositories.SQLite.SqliteOptions>(
+
+        services.Configure<SQLite.SqliteOptions>(
             configuration.GetSection($"{sectionName}:SQLite"));
-        
-        services.Configure<FluentCMS.Repositories.SqlServer.SqlServerOptions>(
+
+        services.Configure<SqlServer.SqlServerOptions>(
             configuration.GetSection($"{sectionName}:SqlServer"));
-        
-        services.Configure<FluentCMS.Repositories.MySQL.MySqlOptions>(
+
+        services.Configure<MySQL.MySqlOptions>(
             configuration.GetSection($"{sectionName}:MySQL"));
-            
-        services.Configure<FluentCMS.Repositories.PostgreSQL.PostgreSqlOptions>(
+
+        services.Configure<PostgreSQL.PostgreSqlOptions>(
             configuration.GetSection($"{sectionName}:PostgreSQL"));
 
         // Read options to determine which provider to configure
@@ -42,11 +39,11 @@ public static class ServiceCollectionExtensions
 
         // Configure the appropriate provider
         ConfigureSelectedProvider(services, options);
-        
+
         // Register the factory as the repository implementation
-        services.AddScoped(typeof(FluentCMS.Repositories.Abstractions.IBaseEntityRepository<>), 
+        services.AddScoped(typeof(Abstractions.IBaseEntityRepository<>),
             typeof(RepositoryFactory<>));
-        
+
         return services;
     }
 
@@ -56,18 +53,18 @@ public static class ServiceCollectionExtensions
     {
         // Configure options using the provided action
         services.Configure(configure);
-        
+
         // Create options instance to determine which provider to configure
         var options = new RepositoryFactoryOptions();
         configure(options);
-        
+
         // Configure the appropriate provider
         ConfigureSelectedProvider(services, options);
-        
+
         // Register the factory as the repository implementation
-        services.AddScoped(typeof(FluentCMS.Repositories.Abstractions.IBaseEntityRepository<>), 
+        services.AddScoped(typeof(Abstractions.IBaseEntityRepository<>),
             typeof(RepositoryFactory<>));
-        
+
         return services;
     }
 
@@ -84,17 +81,17 @@ public static class ServiceCollectionExtensions
             new MySqlProviderConfigurator(),
             new PostgreSqlProviderConfigurator()
         };
-        
+
         // Find the appropriate configurator for the selected provider
         var configurator = configurators.FirstOrDefault(c => c.CanHandleProvider(options.Provider));
-        
+
         if (configurator == null)
         {
             throw new NotSupportedException(
                 $"Repository provider '{options.Provider}' is not supported. " +
                 $"Valid providers are: MongoDB, LiteDB, EntityFramework, SQLite, SqlServer, MySQL, PostgreSQL.");
         }
-        
+
         // Configure the provider
         configurator.ConfigureServices(services, options);
     }
