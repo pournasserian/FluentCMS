@@ -28,7 +28,7 @@ public class LiteDbProviderConfigurator : IProviderConfigurator
         if (string.IsNullOrEmpty(options.LiteDB.ConnectionString))
         {
             throw new ArgumentException(
-                "LiteDB connection string must be specified in Repository:LiteDB:ConnectionString", 
+                "LiteDB connection string must be specified in Repository:LiteDB:ConnectionString",
                 nameof(options));
         }
     }

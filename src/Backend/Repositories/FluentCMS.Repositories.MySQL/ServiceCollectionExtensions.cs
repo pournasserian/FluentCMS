@@ -1,4 +1,3 @@
-using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
 using FluentCMS.Repositories.EntityFramework;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +34,7 @@ public static class ServiceCollectionExtensions
             options.UseMySql(mysqlOptions.ConnectionString, serverVersion, mysqlOptionsBuilder =>
             {
                 mysqlOptionsBuilder.CommandTimeout(mysqlOptions.ConnectionTimeout);
-                
+
                 // Enable auto migrations if configured
                 if (mysqlOptions.AutoMigrateDatabase)
                 {
@@ -53,26 +52,26 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddMySqlRepositories(this IServiceCollection services, 
-        string connectionString, 
-        string? serverVersion = null, 
+    public static IServiceCollection AddMySqlRepositories(this IServiceCollection services,
+        string connectionString,
+        string? serverVersion = null,
         Action<MySqlOptions>? configure = null)
     {
         return services.AddMySqlRepositories(options =>
         {
             options.ConnectionString = connectionString;
-            
+
             if (!string.IsNullOrEmpty(serverVersion))
             {
                 options.ServerVersion = serverVersion;
             }
-            
+
             configure?.Invoke(options);
         });
     }
 
-    public static IServiceCollection AddMySqlRepositories(this IServiceCollection services, 
-        IConfiguration configuration, 
+    public static IServiceCollection AddMySqlRepositories(this IServiceCollection services,
+        IConfiguration configuration,
         string sectionName = "MySQL")
     {
         // Get configuration section

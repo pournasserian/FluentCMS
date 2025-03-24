@@ -40,7 +40,7 @@ public class MySqlProviderConfigurator : IProviderConfigurator
             builder.UseMySql(options.MySQL.ConnectionString, serverVersion, mySqlOptions =>
             {
                 mySqlOptions.CommandTimeout(options.MySQL.ConnectionTimeout);
-                
+
                 if (options.EntityFramework.AutoMigrateDatabase)
                 {
                     mySqlOptions.MigrationsAssembly("FluentCMS.Repositories.MySQL");

@@ -9,7 +9,7 @@ public class PostgreSqlProviderConfigurator : IProviderConfigurator
 {
     public bool CanHandleProvider(string providerName)
     {
-        return providerName.Equals("postgresql", StringComparison.OrdinalIgnoreCase) || 
+        return providerName.Equals("postgresql", StringComparison.OrdinalIgnoreCase) ||
                providerName.Equals("postgres", StringComparison.OrdinalIgnoreCase) ||
                providerName.Equals("npgsql", StringComparison.OrdinalIgnoreCase);
     }
@@ -37,12 +37,12 @@ public class PostgreSqlProviderConfigurator : IProviderConfigurator
             builder.UseNpgsql(options.PostgreSQL.ConnectionString, npgsqlOptions =>
             {
                 npgsqlOptions.CommandTimeout(options.PostgreSQL.ConnectionTimeout);
-                
+
                 if (options.EntityFramework.AutoMigrateDatabase)
                 {
                     npgsqlOptions.MigrationsAssembly("FluentCMS.Repositories.PostgreSQL");
                 }
-                
+
                 if (options.PostgreSQL.EnableRetryOnFailure)
                 {
                     npgsqlOptions.EnableRetryOnFailure(
@@ -50,7 +50,7 @@ public class PostgreSqlProviderConfigurator : IProviderConfigurator
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorCodesToAdd: null);
                 }
-                
+
                 if (options.PostgreSQL.EnableBatchCommands)
                 {
                     npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
@@ -68,7 +68,7 @@ public class PostgreSqlProviderConfigurator : IProviderConfigurator
                 "PostgreSQL connection string must be specified in Repository:PostgreSQL:ConnectionString",
                 nameof(options));
         }
-        
+
         // Validate that the connection string is a valid PostgreSQL connection string
         var connectionString = options.PostgreSQL.ConnectionString;
         if (!connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase) &&

@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.CommandTimeout(postgresOptions.ConnectionTimeout);
-                
+
                 if (postgresOptions.EnableRetryOnFailure)
                 {
                     npgsqlOptions.EnableRetryOnFailure(
@@ -34,12 +34,12 @@ public static class ServiceCollectionExtensions
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorCodesToAdd: null);
                 }
-                
+
                 if (postgresOptions.EnableBatchCommands)
                 {
                     npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 }
-                
+
                 if (postgresOptions.AutoMigrateDatabase)
                 {
                     npgsqlOptions.MigrationsAssembly("FluentCMS.Repositories.PostgreSQL");
@@ -75,65 +75,65 @@ public static class ServiceCollectionExtensions
             // Read PostgreSQL-specific options
             options.ConnectionString = section["ConnectionString"] ?? options.ConnectionString;
             options.ServerVersion = section["ServerVersion"];
-            
+
             bool useJsonForComplexTypes;
             if (bool.TryParse(section["UseJsonForComplexTypes"], out useJsonForComplexTypes))
             {
                 options.UseJsonForComplexTypes = useJsonForComplexTypes;
             }
-            
+
             bool useCaseInsensitiveCollation;
             if (bool.TryParse(section["UseCaseInsensitiveCollation"], out useCaseInsensitiveCollation))
             {
                 options.UseCaseInsensitiveCollation = useCaseInsensitiveCollation;
             }
-            
+
             options.Schema = section["Schema"];
-            
+
             bool useSsl;
             if (bool.TryParse(section["UseSsl"], out useSsl))
             {
                 options.UseSsl = useSsl;
             }
-            
+
             options.SslMode = section["SslMode"] ?? options.SslMode;
-            
+
             bool useConnectionPooling;
             if (bool.TryParse(section["UseConnectionPooling"], out useConnectionPooling))
             {
                 options.UseConnectionPooling = useConnectionPooling;
             }
-            
+
             int maxPoolSize;
             if (int.TryParse(section["MaxPoolSize"], out maxPoolSize))
             {
                 options.MaxPoolSize = maxPoolSize;
             }
-            
+
             int minPoolSize;
             if (int.TryParse(section["MinPoolSize"], out minPoolSize))
             {
                 options.MinPoolSize = minPoolSize;
             }
-            
+
             int connectionTimeout;
             if (int.TryParse(section["ConnectionTimeout"], out connectionTimeout))
             {
                 options.ConnectionTimeout = connectionTimeout;
             }
-            
+
             bool enableRetryOnFailure;
             if (bool.TryParse(section["EnableRetryOnFailure"], out enableRetryOnFailure))
             {
                 options.EnableRetryOnFailure = enableRetryOnFailure;
             }
-            
+
             int maxRetryCount;
             if (int.TryParse(section["MaxRetryCount"], out maxRetryCount))
             {
                 options.MaxRetryCount = maxRetryCount;
             }
-            
+
             bool enableBatchCommands;
             if (bool.TryParse(section["EnableBatchCommands"], out enableBatchCommands))
             {

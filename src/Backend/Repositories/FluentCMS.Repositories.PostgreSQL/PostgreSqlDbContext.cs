@@ -8,10 +8,7 @@ public class PostgreSqlDbContext : FluentCmsDbContext
 {
     private readonly PostgreSqlOptions _postgresOptions;
 
-    public PostgreSqlDbContext(
-        DbContextOptions<PostgreSqlDbContext> options,
-        IOptions<PostgreSqlOptions> postgresOptions)
-        : base(options, postgresOptions)
+    public PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options, IOptions<PostgreSqlOptions> postgresOptions) : base(options, postgresOptions)
     {
         _postgresOptions = postgresOptions?.Value ?? throw new ArgumentNullException(nameof(postgresOptions));
     }
@@ -43,8 +40,8 @@ public class PostgreSqlDbContext : FluentCmsDbContext
             {
                 // Look for complex type properties that could benefit from JSON storage
                 foreach (var property in entityType.GetProperties()
-                    .Where(p => p.ClrType.IsClass && 
-                               p.ClrType != typeof(string) && 
+                    .Where(p => p.ClrType.IsClass &&
+                               p.ClrType != typeof(string) &&
                                !p.IsPrimaryKey()))
                 {
                     // Configure as JSON column
@@ -86,13 +83,13 @@ public class PostgreSqlDbContext : FluentCmsDbContext
         {
             // Configure connection timeout
             npgsqlOptions.CommandTimeout(_postgresOptions.ConnectionTimeout);
-            
+
             // Enable auto migrations if configured
             if (_postgresOptions.AutoMigrateDatabase)
             {
                 npgsqlOptions.MigrationsAssembly("FluentCMS.Repositories.PostgreSQL");
             }
-            
+
             // Enable retrying on failure
             if (_postgresOptions.EnableRetryOnFailure)
             {
@@ -101,7 +98,7 @@ public class PostgreSqlDbContext : FluentCmsDbContext
                     maxRetryDelay: TimeSpan.FromSeconds(30),
                     errorCodesToAdd: null);
             }
-            
+
             // Configure batch operations
             if (_postgresOptions.EnableBatchCommands)
             {
@@ -114,26 +111,26 @@ public class PostgreSqlDbContext : FluentCmsDbContext
     {
         // Start with the base connection string
         var connectionString = _postgresOptions.ConnectionString;
-        
+
         // If not already in the connection string, add additional options
         if (!connectionString.Contains("Pooling=", StringComparison.OrdinalIgnoreCase))
         {
             connectionString += $";Pooling={(_postgresOptions.UseConnectionPooling ? "true" : "false")}";
         }
-        
+
         if (_postgresOptions.UseConnectionPooling)
         {
             if (!connectionString.Contains("Maximum Pool Size=", StringComparison.OrdinalIgnoreCase))
             {
                 connectionString += $";Maximum Pool Size={_postgresOptions.MaxPoolSize}";
             }
-            
+
             if (!connectionString.Contains("Minimum Pool Size=", StringComparison.OrdinalIgnoreCase))
             {
                 connectionString += $";Minimum Pool Size={_postgresOptions.MinPoolSize}";
             }
         }
-        
+
         // Add SSL if not already specified
         if (_postgresOptions.UseSsl && !connectionString.Contains("SSL Mode=", StringComparison.OrdinalIgnoreCase))
         {

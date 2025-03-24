@@ -1,8 +1,6 @@
 using FluentCMS.Repositories.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System;
-using System.Linq;
 
 namespace FluentCMS.Repositories.MySQL;
 
@@ -10,10 +8,7 @@ public class MySqlDbContext : FluentCmsDbContext
 {
     private readonly MySqlOptions _mysqlOptions;
 
-    public MySqlDbContext(
-        DbContextOptions<MySqlDbContext> options,
-        IOptions<MySqlOptions> mysqlOptions)
-        : base(options, mysqlOptions)
+    public MySqlDbContext(DbContextOptions<MySqlDbContext> options, IOptions<MySqlOptions> mysqlOptions) : base(options, mysqlOptions)
     {
         _mysqlOptions = mysqlOptions?.Value ?? throw new ArgumentNullException(nameof(mysqlOptions));
     }
@@ -64,7 +59,7 @@ public class MySqlDbContext : FluentCmsDbContext
         {
             // Configure connection timeout
             mysqlOptions.CommandTimeout(_mysqlOptions.ConnectionTimeout);
-            
+
             // Enable auto migrations if configured
             if (_mysqlOptions.AutoMigrateDatabase)
             {
@@ -77,26 +72,26 @@ public class MySqlDbContext : FluentCmsDbContext
     {
         // Start with the base connection string
         var connectionString = _mysqlOptions.ConnectionString;
-        
+
         // If not already in the connection string, add additional options
         if (!connectionString.Contains("Pooling=", StringComparison.OrdinalIgnoreCase))
         {
             connectionString += $";Pooling={(_mysqlOptions.UseConnectionPooling ? "true" : "false")}";
         }
-        
+
         if (_mysqlOptions.UseConnectionPooling)
         {
             if (!connectionString.Contains("Maximum Pool Size=", StringComparison.OrdinalIgnoreCase))
             {
                 connectionString += $";Maximum Pool Size={_mysqlOptions.MaxPoolSize}";
             }
-            
+
             if (!connectionString.Contains("Minimum Pool Size=", StringComparison.OrdinalIgnoreCase))
             {
                 connectionString += $";Minimum Pool Size={_mysqlOptions.MinPoolSize}";
             }
         }
-        
+
         // Add SSL if not already specified
         if (_mysqlOptions.UseSsl && !connectionString.Contains("SslMode=", StringComparison.OrdinalIgnoreCase))
         {
@@ -113,7 +108,7 @@ public class MySqlDbContext : FluentCmsDbContext
         {
             return Microsoft.EntityFrameworkCore.ServerVersion.Parse(_mysqlOptions.ServerVersion);
         }
-        
+
         // Otherwise auto-detect from connection string
         return Microsoft.EntityFrameworkCore.ServerVersion.AutoDetect(_mysqlOptions.ConnectionString);
     }

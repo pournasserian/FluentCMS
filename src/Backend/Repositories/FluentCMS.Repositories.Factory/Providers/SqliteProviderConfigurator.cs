@@ -31,22 +31,22 @@ public class SqliteProviderConfigurator : IProviderConfigurator
 
         // Generate SQLite connection string from options
         string connectionString = $"Data Source={options.SQLite.DatabasePath}";
-        
+
         // Add additional SQLite connection options
         connectionString += $";Foreign Keys={(options.SQLite.EnableForeignKeys ? 1 : 0)}";
-        
+
         if (options.SQLite.UseWal)
         {
             connectionString += ";Journal Mode=WAL";
         }
-        
+
         connectionString += $";Cache Size={options.SQLite.CacheSize}";
-        
+
         if (!options.SQLite.UseConnectionPooling)
         {
             connectionString += ";Pooling=False";
         }
-        
+
         connectionString += $";Default Timeout={options.SQLite.ConnectionTimeout}";
 
         // Register SQLite repositories with the connection string

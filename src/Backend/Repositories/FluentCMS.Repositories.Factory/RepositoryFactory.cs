@@ -4,9 +4,6 @@ using FluentCMS.Repositories.Abstractions.Querying;
 using FluentCMS.Repositories.EntityFramework;
 using FluentCMS.Repositories.LiteDB;
 using FluentCMS.Repositories.MongoDB;
-using FluentCMS.Repositories.PostgreSQL;
-using FluentCMS.Repositories.SQLite;
-using FluentCMS.Repositories.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -16,16 +13,12 @@ public class RepositoryFactory<TEntity> : IBaseEntityRepository<TEntity> where T
 {
     private readonly IBaseEntityRepository<TEntity> _repository;
 
-    public RepositoryFactory(
-        IOptions<RepositoryFactoryOptions> options,
-        IServiceProvider serviceProvider)
+    public RepositoryFactory(IOptions<RepositoryFactoryOptions> options, IServiceProvider serviceProvider)
     {
         _repository = CreateRepository(options.Value, serviceProvider);
     }
 
-    private IBaseEntityRepository<TEntity> CreateRepository(
-        RepositoryFactoryOptions options,
-        IServiceProvider serviceProvider)
+    private IBaseEntityRepository<TEntity> CreateRepository(RepositoryFactoryOptions options, IServiceProvider serviceProvider)
     {
         switch (options.Provider.ToLowerInvariant())
         {
@@ -51,7 +44,7 @@ public class RepositoryFactory<TEntity> : IBaseEntityRepository<TEntity> where T
                 // SQL Server uses EntityFrameworkEntityRepository with SQL Server-specific DbContext
                 return ActivatorUtilities.CreateInstance<EntityFrameworkEntityRepository<TEntity>>(
                     serviceProvider);
-                    
+
             case "postgresql":
             case "postgres":
                 // PostgreSQL uses EntityFrameworkEntityRepository with PostgreSQL-specific DbContext
@@ -65,34 +58,34 @@ public class RepositoryFactory<TEntity> : IBaseEntityRepository<TEntity> where T
     }
 
     // IBaseEntityRepository implementation - delegating to the selected repository
-    
-    public Task<TEntity?> Create(TEntity entity, CancellationToken cancellationToken = default) 
+
+    public Task<TEntity?> Create(TEntity entity, CancellationToken cancellationToken = default)
         => _repository.Create(entity, cancellationToken);
 
-    public Task<IEnumerable<TEntity>> CreateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default) 
+    public Task<IEnumerable<TEntity>> CreateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
         => _repository.CreateMany(entities, cancellationToken);
 
-    public Task<TEntity?> Update(TEntity entity, CancellationToken cancellationToken = default) 
+    public Task<TEntity?> Update(TEntity entity, CancellationToken cancellationToken = default)
         => _repository.Update(entity, cancellationToken);
 
-    public Task<IEnumerable<TEntity>> UpdateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default) 
+    public Task<IEnumerable<TEntity>> UpdateMany(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
         => _repository.UpdateMany(entities, cancellationToken);
 
-    public Task<TEntity?> Delete(Guid id, CancellationToken cancellationToken = default) 
+    public Task<TEntity?> Delete(Guid id, CancellationToken cancellationToken = default)
         => _repository.Delete(id, cancellationToken);
 
-    public Task<IEnumerable<TEntity>> DeleteMany(IEnumerable<Guid> ids, CancellationToken cancellationToken = default) 
+    public Task<IEnumerable<TEntity>> DeleteMany(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
         => _repository.DeleteMany(ids, cancellationToken);
 
-    public Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default) 
+    public Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default)
         => _repository.GetAll(cancellationToken);
 
-    public Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken = default) 
+    public Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken = default)
         => _repository.GetById(id, cancellationToken);
 
-    public Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default) 
+    public Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
         => _repository.GetByIds(ids, cancellationToken);
-        
-    public Task<PagedResult<TEntity>> QueryAsync(QueryParameters<TEntity>? queryParameters = default, CancellationToken cancellationToken = default)
-        => _repository.QueryAsync(queryParameters, cancellationToken);
+
+    public Task<PagedResult<TEntity>> Query(QueryParameters<TEntity>? queryParameters = default, CancellationToken cancellationToken = default)
+        => _repository.Query(queryParameters, cancellationToken);
 }

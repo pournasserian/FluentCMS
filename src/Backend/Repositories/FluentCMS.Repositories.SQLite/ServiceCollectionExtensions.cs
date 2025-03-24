@@ -3,7 +3,6 @@ using FluentCMS.Repositories.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
 
 namespace FluentCMS.Repositories.SQLite;
 

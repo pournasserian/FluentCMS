@@ -1,6 +1,5 @@
 using FluentCMS.Repositories.EntityFramework;
 using FluentCMS.Repositories.SqlServer;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -45,15 +44,15 @@ public class SqlServerProviderConfigurator : IProviderConfigurator
                 {
                     sqlOptions.CommandTimeout(options.SqlServer.CommandTimeout);
                 }
-                
+
                 if (options.SqlServer.EnableRetryOnFailure)
                 {
                     sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: options.SqlServer.MaxRetryCount > 0 
-                            ? options.SqlServer.MaxRetryCount 
+                        maxRetryCount: options.SqlServer.MaxRetryCount > 0
+                            ? options.SqlServer.MaxRetryCount
                             : 5);
                 }
-                
+
                 // Apply other SQL Server specific options as needed
                 if (options.SqlServer.EnableSensitiveDataLogging)
                 {

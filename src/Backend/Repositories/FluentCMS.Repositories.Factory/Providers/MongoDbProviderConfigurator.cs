@@ -32,14 +32,14 @@ public class MongoDbProviderConfigurator : IProviderConfigurator
         if (string.IsNullOrEmpty(options.MongoDB.ConnectionString))
         {
             throw new ArgumentException(
-                "MongoDB connection string must be specified in Repository:MongoDB:ConnectionString", 
+                "MongoDB connection string must be specified in Repository:MongoDB:ConnectionString",
                 nameof(options));
         }
 
         if (string.IsNullOrEmpty(options.MongoDB.DatabaseName))
         {
             throw new ArgumentException(
-                "MongoDB database name must be specified in Repository:MongoDB:DatabaseName", 
+                "MongoDB database name must be specified in Repository:MongoDB:DatabaseName",
                 nameof(options));
         }
     }

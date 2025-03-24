@@ -14,8 +14,5 @@ public interface IBaseEntityRepository<TEntity> where TEntity : IBaseEntity
     Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken = default);
     Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<TEntity>> GetByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
-    
-    Task<PagedResult<TEntity>> QueryAsync(
-        QueryParameters<TEntity>? queryParameters = null,
-        CancellationToken cancellationToken = default);
+    Task<PagedResult<TEntity>> Query(QueryParameters<TEntity>? queryParameters = null, CancellationToken cancellationToken = default);
 }

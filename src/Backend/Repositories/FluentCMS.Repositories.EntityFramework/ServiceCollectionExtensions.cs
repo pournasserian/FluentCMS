@@ -1,17 +1,13 @@
-using FluentCMS.Entities;
 using FluentCMS.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace FluentCMS.Repositories.EntityFramework;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddEntityFrameworkOptions(
-        this IServiceCollection services, 
-        Action<EntityFrameworkOptions> configure)
+    public static IServiceCollection AddEntityFrameworkOptions(this IServiceCollection services, Action<EntityFrameworkOptions> configure)
     {
         // Configure options
         services.Configure(configure);
@@ -19,34 +15,31 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddEntityFrameworkOptions(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string sectionName = "EntityFramework")
+    public static IServiceCollection AddEntityFrameworkOptions(this IServiceCollection services, IConfiguration configuration, string sectionName = "EntityFramework")
     {
         // Configure options from configuration
-        services.Configure<EntityFrameworkOptions>(options => 
+        services.Configure<EntityFrameworkOptions>(options =>
         {
             // Get configuration section
             var section = configuration.GetSection(sectionName);
-            
+
             // Manually transfer configuration values to options
             bool useCamelCaseValue;
             if (bool.TryParse(section["UseCamelCaseTableNames"], out useCamelCaseValue))
             {
                 options.UseCamelCaseTableNames = useCamelCaseValue;
             }
-            
+
             options.TableNamePrefix = section["TableNamePrefix"];
             options.TableNameSuffix = section["TableNameSuffix"];
             options.DefaultSchema = section["DefaultSchema"];
-            
+
             bool autoMigrateValue;
             if (bool.TryParse(section["AutoMigrateDatabase"], out autoMigrateValue))
             {
                 options.AutoMigrateDatabase = autoMigrateValue;
             }
-            
+
             bool usePluralValue;
             if (bool.TryParse(section["UsePluralTableNames"], out usePluralValue))
             {
@@ -57,11 +50,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddEntityFrameworkRepositories<TContext>(
-        this IServiceCollection services,
-        Action<DbContextOptionsBuilder> dbContextOptionsBuilder,
-        Action<EntityFrameworkOptions>? configure = null)
-        where TContext : FluentCmsDbContext
+    public static IServiceCollection AddEntityFrameworkRepositories<TContext>(this IServiceCollection services, Action<DbContextOptionsBuilder> dbContextOptionsBuilder, Action<EntityFrameworkOptions>? configure = null) where TContext : FluentCmsDbContext
     {
         // Configure options if provided
         if (configure != null)
@@ -71,7 +60,7 @@ public static class ServiceCollectionExtensions
 
         // Register DbContext
         services.AddDbContext<TContext>(dbContextOptionsBuilder);
-        
+
         // Register FluentCmsDbContext (if TContext is a derived type)
         if (typeof(TContext) != typeof(FluentCmsDbContext))
         {
@@ -84,14 +73,11 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddEntityFrameworkRepositories(
-        this IServiceCollection services,
-        Action<DbContextOptionsBuilder> dbContextOptionsBuilder,
-        Action<EntityFrameworkOptions>? configure = null)
+    public static IServiceCollection AddEntityFrameworkRepositories(this IServiceCollection services, Action<DbContextOptionsBuilder> dbContextOptionsBuilder, Action<EntityFrameworkOptions>? configure = null)
     {
         return AddEntityFrameworkRepositories<FluentCmsDbContext>(
-            services, 
-            dbContextOptionsBuilder, 
+            services,
+            dbContextOptionsBuilder,
             configure);
     }
 }
